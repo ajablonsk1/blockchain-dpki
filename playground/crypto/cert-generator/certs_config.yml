@@ -1,0 +1,43 @@
+certs:
+  - name: root
+    template:
+      subject:
+        organization: Root Org
+        commonName: root.org
+      issuer:
+        organization: Root Org
+        commonName: root.org
+      signatureAlgorithm: ed25519
+      keyUsage:
+        - KeyUsageCertSign
+        - KeyUsageCRLSign
+      basicConstraintsValid: true
+      isCa: true
+      maxPathLen: 1
+  - name: intermediate
+    template:
+      subject:
+        organization: Intermediate Org
+        commonName: intermediate.org
+      signatureAlgorithm: ed25519
+      keyUsage:
+        - KeyUsageCertSign
+        - KeyUsageCRLSign
+      basicConstraintsValid: true
+      isCa: true
+      maxPathLen: 0
+  - name: exampleCert
+    template:
+      subject:
+        organization: Example
+        commonName: example.com
+      signatureAlgorithm: ed25519
+      keyUsage:
+        - KeyUsageDigitalSignature
+      extKeyUsage:
+        - ExtKeyUsageServerAuth
+        - ExtKeyUsageClientAuth
+      basicConstraintsValid: true
+      isCa: false
+      dnsNames:
+        - example.com
