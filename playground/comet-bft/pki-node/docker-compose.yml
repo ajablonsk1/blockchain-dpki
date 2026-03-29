@@ -1,0 +1,53 @@
+version: "3"
+
+services:
+  node0:
+    build: .
+    ports:
+      - "26657:26657"
+    volumes:
+      - ./testnet/node0:/cometbft
+    command: ["--cmt-home", "/cometbft"]
+    networks:
+      pki-net:
+        ipv4_address: 172.30.0.10
+
+  node1:
+    build: .
+    ports:
+      - "26667:26657"
+    volumes:
+      - ./testnet/node1:/cometbft
+    command: ["--cmt-home", "/cometbft"]
+    networks:
+      pki-net:
+        ipv4_address: 172.30.0.11
+
+  node2:
+    build: .
+    ports:
+      - "26677:26657"
+    volumes:
+      - ./testnet/node2:/cometbft
+    command: ["--cmt-home", "/cometbft"]
+    networks:
+      pki-net:
+        ipv4_address: 172.30.0.12
+
+  node3:
+    build: .
+    ports:
+      - "26687:26657"
+    volumes:
+      - ./testnet/node3:/cometbft
+    command: ["--cmt-home", "/cometbft"]
+    networks:
+      pki-net:
+        ipv4_address: 172.30.0.13
+
+networks:
+  pki-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
