@@ -1,4 +1,4 @@
-module merkle-trees
+module local/merkle-trees
 
 go 1.25.1
 
