@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
+	"strconv"
 	"strings"
 
 	merkle "local/merkle-trees"
@@ -31,6 +32,7 @@ type CertEntry struct {
 	CreatedAt int64
 	Revoked   bool
 	RevokedAt int64
+	ExpiresAt int64
 }
 
 var _ abcitypes.Application = (*PKIApplication)(nil)
@@ -60,7 +62,8 @@ func (app *PKIApplication) Query(_ context.Context, req *abcitypes.RequestQuery)
 		CertEntry *CertEntry
 		Proof     []merkle.ProofElement
 		RootHash  []byte
-	}{certEntry, proof, app.tree.RootHash()})
+		Index     int
+	}{certEntry, proof, app.tree.RootHash(), i})
 	if err != nil {
 		return &abcitypes.ResponseQuery{Code: 3, Log: "error marshaling cert entry"}, nil
 	}
@@ -93,11 +96,11 @@ func (app *PKIApplication) isTxValid(tx []byte) uint32 {
 	command := string(parts[0])
 	switch command {
 	case "REGISTER":
-		if len(parts) != 4 {
+		if len(parts) != 5 {
 			return 1
 		}
 
-		domain, pubKeyHex, signHex := parts[1], parts[2], parts[3]
+		domain, pubKeyHex, signHex, ttlBytes := parts[1], parts[2], parts[3], parts[4]
 
 		_, exist := app.pkiState.Certs[string(domain)]
 		if exist {
@@ -115,6 +118,11 @@ func (app *PKIApplication) isTxValid(tx []byte) uint32 {
 		}
 
 		if !app.signatureValid(pubKey, domain, signature) {
+			return 1
+		}
+
+		_, err = strconv.Atoi(string(ttlBytes))
+		if err != nil {
 			return 1
 		}
 
@@ -178,16 +186,22 @@ func (app *PKIApplication) FinalizeBlock(_ context.Context, req *abcitypes.Reque
 		case "REGISTER":
 			pubKeyHex := parts[2]
 			pubKey, _ := hex.DecodeString(string(pubKeyHex))
+			ttl, _ := strconv.Atoi(string(parts[4]))
 
 			certEntry := &CertEntry{
 				Domain:    string(domain),
 				PubKey:    pubKey,
 				CreatedAt: req.Time.Unix(),
+				ExpiresAt: req.Time.Unix() + int64(ttl),
 			}
 			certs := app.pkiState.Certs
 			certs[domain] = certEntry
 
 		case "REVOKE":
+			if req.Time.Unix() > app.pkiState.Certs[domain].ExpiresAt {
+				txs[i] = &abcitypes.ExecTxResult{Code: 2}
+				continue
+			}
 			app.pkiState.Certs[domain].Revoked = true
 			app.pkiState.Certs[domain].RevokedAt = req.Time.Unix()
 		}
