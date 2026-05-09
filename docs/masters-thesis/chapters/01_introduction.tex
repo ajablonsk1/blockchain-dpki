@@ -1,18 +1,54 @@
-%!TEX root = ../main.tex
 \chapter{Wstęp}
 \label{ch:wstep}
 
 \section{Motywacja}
 \label{sec:motywacja}
 
+Infrastruktura klucza publicznego (PKI) jest fundamentem zaufania w Internecie -- odpowiada za uwierzytelnianie stron komunikacji w protokole TLS, podpisywanie kodu, zabezpieczanie poczty elektronicznej oraz wiele innych zastosowań kryptograficznych. W obecnym kształcie, opartym na standardzie X.509, model zaufania PKI ma charakter hierarchiczny i wymaga obecności zaufanych centrów certyfikacji (ang. \emph{Certificate Authority}, CA), które poświadczają powiązanie tożsamości z kluczem publicznym.
+
+Ta hierarchiczna konstrukcja niesie ze sobą szereg problemów strukturalnych. Każde z setek centrów certyfikacji obecnych w globalnych magazynach zaufania (\emph{trust stores}) przeglądarek i systemów operacyjnych może wystawić ważny certyfikat dla dowolnej domeny w Internecie, co oznacza, że bezpieczeństwo całego systemu jest ograniczone bezpieczeństwem najsłabszego z CA. Historia PKI dostarcza konkretnych przykładów konsekwencji tego stanu rzeczy -- włamanie do holenderskiego CA DigiNotar w 2011 roku skutkowało wystawieniem ponad pięciuset fałszywych certyfikatów, w tym dla domeny \texttt{*.google.com}, wykorzystywanych do masowej inwigilacji obywateli Iranu. Kilkukrotne nieprawidłowości w wystawianiu certyfikatów przez Symantec doprowadziły z kolei do usunięcia tego CA z magazynów zaufania głównych przeglądarek w latach 2017--2018. Także scentralizowany charakter mechanizmów unieważniania certyfikatów (CRL, OCSP) generuje problemy z wydajnością, prywatnością i dostępnością, które do dziś nie doczekały się satysfakcjonującego rozwiązania.
+
+Częściową odpowiedzią na te problemy jest Certificate Transparency (CT) -- mechanizm publicznych, niezmienialnych logów certyfikatów, do których wszystkie wystawione przez CA certyfikaty muszą zostać dopisane, by przeglądarki uznały je za ważne. CT zwiększa wykrywalność nadużyć, ale nie eliminuje samego problemu -- nadal opiera się na zaufaniu do operatorów logów oraz CA i pełni rolę detekcyjną, a nie prewencyjną.
+
+Technologia blockchain, zaproponowana w 2008 roku w kontekście kryptowaluty Bitcoin \cite{nakamoto2008bitcoin}, oferuje właściwości, które potencjalnie mogą zaadresować strukturalne słabości klasycznej PKI -- rozproszony konsensus, niezmienność historii, transparentność oraz brak pojedynczego punktu zaufania. Koncepcja zdecentralizowanej infrastruktury klucza publicznego (DPKI, \emph{Decentralized Public Key Infrastructure}) zakłada, że wiązanie tożsamości z kluczem publicznym może zostać zapisane w rozproszonym rejestrze utrzymywanym wspólnie przez wiele niezależnych podmiotów, eliminując konieczność istnienia zaufanego pośrednika.
+
+Mimo licznych prób implementacji tej koncepcji -- od Namecoina, przez Blockstack, po systemy oparte na tożsamości suwerennej (SSI) -- żadne z istniejących rozwiązań nie zyskało powszechnego uznania w roli zamiennika klasycznej PKI. Otwartymi problemami pozostają inicjalizacja zaufania w nowo uruchamianej sieci, wydajność, koszt operacji oraz integracja z istniejącymi standardami i narzędziami. Tematyka ta pozostaje aktywnym obszarem badań akademickich i przemysłowych, a kompleksowe podejście łączące projektowanie, implementację oraz analizę bezpieczeństwa systemu DPKI stanowi wartościowy wkład w dyskusję nad kierunkami ewolucji PKI.
+
 \section{Cel i zakres pracy}
 \label{sec:cel-zakres}
+
+Głównym celem pracy jest zaprojektowanie, implementacja oraz analiza bezpieczeństwa zdecentralizowanej infrastruktury klucza publicznego opartej na technologii blockchain, stanowiącej alternatywę dla scentralizowanego modelu PKI X.509 w przypadku użycia Web PKI -- czyli wiązania nazw domen z kluczami publicznymi na potrzeby uwierzytelniania w protokole TLS.
+
+Zakres pracy obejmuje analizę porównawczą klasycznej PKI X.509 oraz istniejących podejść zdecentralizowanych, przegląd platform blockchain pod kątem przydatności do roli rozproszonego rejestru certyfikatów, zaprojektowanie architektury systemu wraz z modelem danych i protokołami operacji na certyfikatach (rejestracja, weryfikacja, odnowienie, unieważnienie), implementację prototypu w języku Go obejmującą warstwę aplikacyjną blockchain oraz aplikację kliencką, a także modelowanie zagrożeń i analizę bezpieczeństwa zaproponowanego rozwiązania w odniesieniu do typowych wektorów ataku na PKI. Praca zamyka się porównaniem zaproponowanego systemu z klasyczną PKI pod kątem właściwości bezpieczeństwa, kosztu operacji oraz ograniczeń podejścia.
+
+Jako warstwę konsensusu wybrano CometBFT (kontynuację projektu Tendermint Core) -- gotową, przetestowaną implementację algorytmu konsensusu BFT pozwalającą skupić nakład pracy na warstwie aplikacyjnej, w której znajduje się zasadnicza logika DPKI istotna z punktu widzenia tematu pracy. Komunikacja z warstwą konsensusu odbywa się poprzez interfejs ABCI (\emph{Application Blockchain Interface}), a sama logika aplikacji oraz klient zostały zaimplementowane w języku Go.
+
+Praca ma charakter projektowo-implementacyjny z istotnym komponentem analitycznym. Otrzymany prototyp nie jest gotowym produktem przeznaczonym do wdrożenia produkcyjnego -- jego celem jest weryfikacja stawianych tez oraz dostarczenie konkretnej, działającej implementacji, na podstawie której można przeprowadzić analizę bezpieczeństwa odnoszącą się do rzeczywistego systemu, a nie wyłącznie do modelu abstrakcyjnego.
 
 \section{Problem badawczy i pytania badawcze}
 \label{sec:problem-badawczy}
 
+Problem badawczy podjęty w niniejszej pracy można sformułować następująco: \emph{w jakim stopniu zdecentralizowana infrastruktura klucza publicznego oparta na blockchain jest w stanie wyeliminować strukturalne słabości klasycznego modelu PKI X.509 w kontekście Web PKI, jakie nowe wektory ataku oraz ograniczenia wprowadza takie podejście, oraz czy jego implementacja jest praktycznie wykonalna z wykorzystaniem istniejących komponentów}.
+
+W ramach tak zdefiniowanego problemu sformułowano następujące pytania szczegółowe:
+\begin{enumerate}
+    \item Które klasy ataków typowe dla scentralizowanej PKI -- w szczególności kompromitacja CA, wystawianie nieautoryzowanych certyfikatów oraz opóźnienia w propagacji unieważnień -- zostają wyeliminowane przez zastosowanie blockchain jako rejestru, a które pozostają aktualne lub przyjmują nową postać?
+    \item Jakie nowe powierzchnie ataku pojawiają się wraz z wprowadzeniem warstwy konsensusu rozproszonego, sieci P2P oraz protokołów rejestracji opartych na wyzwaniach (\emph{challenge-response}), i jak ich istotność wypada w porównaniu z klasami ataków eliminowanymi przez zastosowanie blockchain?
+    \item W jaki sposób można zaprojektować mechanizm wiązania domeny z kluczem publicznym, który nie wymaga istnienia zaufanego pośrednika, a jednocześnie pozostaje odporny na próby przejęcia tożsamości?
+    \item Czy implementacja funkcjonalnej DPKI jest praktycznie wykonalna z wykorzystaniem gotowych komponentów warstwy konsensusu, bez konieczności implementowania własnego protokołu od podstaw?
+\end{enumerate}
+
 \section{Postawione tezy}
 \label{sec:tezy}
 
-\section{Struktura pracy}
-\label{sec:struktura}
+W pracy postawiono tezę główną oraz cztery tezy pomocnicze, stanowiące przewidywane odpowiedzi na sformułowane wyżej pytania badawcze.
+
+\textbf{Teza główna} stwierdza, że zdecentralizowana infrastruktura klucza publicznego oparta na blockchain z konsensusem BFT może stanowić funkcjonalnie kompletną alternatywę dla klasycznego modelu PKI X.509 w zakresie Web PKI, eliminując pojedynczy punkt zaufania w postaci centrów certyfikacji.
+
+Tezy pomocnicze są następujące:
+\begin{enumerate}
+    \item Zastąpienie hierarchii zaufanych CA rozproszonym rejestrem opartym na blockchain eliminuje klasę ataków polegających na kompromitacji pojedynczego CA i wystawieniu fałszywego certyfikatu dla cudzej domeny, przy czym część zagrożeń -- związanych z bezpieczeństwem klucza prywatnego właściciela domeny oraz integralnością procesu weryfikacji -- pozostaje aktualna i wymaga niezależnego adresowania.
+    \item Wprowadzenie warstwy konsensusu rozproszonego oraz sieci P2P powoduje pojawienie się nowych wektorów ataku, jednak ich realizacja wymaga skompromitowania większościowej części walidatorów lub aktywnego uczestnictwa w protokole sieciowym, co czyni je istotnie trudniejszymi w wykorzystaniu niż kompromitacja pojedynczego CA w modelu klasycznym.
+    \item Zapis stanu certyfikatów w blockchainie z wykorzystaniem drzew Merkle umożliwia zaprojektowanie protokołu wiązania domeny z kluczem publicznym pozbawionego zaufanego pośrednika, a weryfikacja istnienia, ważności oraz unieważnienia certyfikatu odbywa się z gwarancjami kryptograficznymi silniejszymi niż mechanizmy CRL i OCSP, przy zachowaniu porównywalnego lub niższego kosztu po stronie weryfikującego.
+    \item Wykorzystanie gotowej warstwy konsensusu (CometBFT) oraz interfejsu ABCI pozwala na implementację funkcjonalnej DPKI wyłącznie w warstwie aplikacyjnej, bez konieczności implementowania własnego protokołu konsensusu.
+\end{enumerate}
