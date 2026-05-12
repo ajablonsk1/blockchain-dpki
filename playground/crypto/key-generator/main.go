@@ -66,7 +66,7 @@ func createPemFileFromBytes(b []byte, keyType, filename string) {
 		Bytes: b,
 	}
 
-	err := os.WriteFile(filename, pem.EncodeToMemory(block), 0600)
+	err := os.WriteFile(filename, pem.EncodeToMemory(block), 0o600)
 	if err != nil {
 		log.Fatalf("encountered error during PEM file creation: %v", err)
 	}

@@ -29,7 +29,7 @@ func main() {
 	switch *mode {
 	case "sign":
 		signatureBytes := createSignature(*key, *message)
-		err := os.WriteFile(*signature, signatureBytes, 0600)
+		err := os.WriteFile(*signature, signatureBytes, 0o600)
 		if err != nil {
 			log.Fatalf("error writing signature to a file: %v", err)
 		}
