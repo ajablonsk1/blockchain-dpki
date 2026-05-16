@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package dpki.v1;
+option go_package = "github.com/ajablonsk1/blockchain-dpki/internal/types";
+
+message Certificate {
+  string domain = 1;
+  bytes public_key = 2;
+  Algorithm algorithm = 3;
+  int64 valid_from = 4;
+  uint64 version = 5;
+}
+
+enum Algorithm {
+  ALGORITHM_UNSPECIFIED = 0;
+  ALGORITHM_ECDSA_P256 = 2;
+  ALGORITHM_ED25519 = 1;
+}

@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package dpki.v1;
+option go_package = "github.com/ajablonsk1/blockchain-dpki/internal/types";
+
+import "dpki/v1/certificate.proto";
+
+message DomainState {
+  Certificate certificate = 1;
+  uint64 nonce = 2;
+  bool revoked = 3;
+  int64 revoked_at = 4;
+  string revoke_reason = 5;
+}

@@ -1,4 +1,4 @@
-.PHONY: help build run-dpkid run-client test test-coverage lint fmt clean
+.PHONY: help build run-dpkid run-client test test-coverage proto-gen proto-clean lint fmt clean
 
 BINARY_DIR=./bin
 DPKID=$(BINARY_DIR)/dpkid
@@ -36,6 +36,16 @@ test:
 test-cover:
 	go test -race -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out -o coverage.html
+
+proto-gen:
+	protoc \
+		--go_out=. \
+		--go_opt=module=github.com/ajablonsk1/blockchain-dpki \
+		-I proto \
+		proto/dpki/v1/*.proto
+
+proto-clean:
+	find . -name "*.pb.go"
 
 lint:
 	golangci-lint run ./...

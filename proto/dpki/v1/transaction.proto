@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package dpki.v1;
+option go_package = "github.com/ajablonsk1/blockchain-dpki/internal/types";
+
+import "dpki/v1/certificate.proto";
+
+message Transaction {
+  oneof body {
+    RegisterTx register = 1;
+    RevokeTx revoke = 2;
+    RotateTx rotate = 3;
+  }
+  bytes signature = 10;
+  string chain_id = 11;
+}
+
+message RegisterTx {
+  Certificate certificate = 1;
+}
+
+message RevokeTx {
+  string domain = 1;
+  uint64 nonce = 2;
+  string reason = 3;
+}
+
+message RotateTx {
+  string domain = 1;
+  uint64 nonce = 2;
+  bytes new_public_key = 3;
+  Algorithm new_algorithm = 4;
+}
