@@ -48,7 +48,7 @@ var (
 	ErrNilTransactionBody     = errors.New("transaction body is nil")
 	ErrUnknownTransactionType = errors.New("transaction type is unknown")
 	ErrNonceEqualZero         = errors.New("nonce equals zero")
-	ErrInvalidChainId        = errors.New("chain id is invalid")
+	ErrInvalidChainID         = errors.New("chain id is invalid")
 )
 
 func validateDomain(domain string) error {
@@ -183,9 +183,9 @@ func (tx *Transaction) Validate() error {
 		return fmt.Errorf("transaction: %w", ErrInvalidSignatureSize)
 	}
 
-	chainId := tx.GetChainId()
-	if chainId == "" || len(chainId) > MaxChainIDLength {
-		return fmt.Errorf("transaction: %w", ErrInvalidChainId)
+	chainID := tx.GetChainId()
+	if chainID == "" || len(chainID) > MaxChainIDLength {
+		return fmt.Errorf("transaction: %w", ErrInvalidChainID)
 	}
 
 	switch body := tx.GetBody().(type) {
