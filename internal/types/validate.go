@@ -170,6 +170,9 @@ func (r *RotateTx) Validate() error {
 	return nil
 }
 
+// Validate checks structural validity. A missing signature is allowed;
+// a present signature must be exactly Ed25519SignatureSize bytes.
+// Use Verify to authenticate the signature cryptographically.
 func (tx *Transaction) Validate() error {
 	if tx == nil {
 		return ErrNilTransaction

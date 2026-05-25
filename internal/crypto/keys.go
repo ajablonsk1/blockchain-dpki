@@ -40,6 +40,8 @@ func PrivateKeyToFile(path string, key []byte) error {
 	return nil
 }
 
+// PrivateKeyFromFile reads an Ed25519 private key from path.
+// Returns ErrInsecurePermissions if the file has group or world bits set.
 func PrivateKeyFromFile(path string) ([]byte, error) {
 	info, err := os.Stat(path)
 	if err != nil {
