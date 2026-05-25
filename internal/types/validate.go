@@ -5,15 +5,14 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/ajablonsk1/blockchain-dpki/internal/crypto"
 )
 
 const (
 	// RFC 1035
 	MaxDomainLength = 253
 	MaxLabelLength  = 63
-	// RFC 8032
-	Ed25519KeySize = 32
-	Ed25519SigSize = 64
 	// App limits
 	MinValidTimestamp = 1577836800 // 2020-01-01 UTC
 	MaxReasonLength   = 256
@@ -30,8 +29,6 @@ var (
 	ErrInvalidDomainFormat = errors.New("domain has invalid format")
 
 	// key
-	ErrInvalidKeySize        = errors.New("public key has invalid size")
-	ErrInvalidSignatureSize  = errors.New("signature has invalid size")
 	ErrUnknownAlgorithm      = errors.New("algorithm is unspecified or unknown")
 	ErrAlgorithmNotSupported = errors.New("algorithm is not supported")
 
@@ -88,8 +85,8 @@ func validatePublicKey(key []byte, algo Algorithm) error {
 
 	switch algo {
 	case Algorithm_ALGORITHM_ED25519:
-		if len(key) != Ed25519KeySize {
-			return fmt.Errorf("%w: ed25519 expect %d bytes, got %d", ErrInvalidKeySize, Ed25519KeySize, len(key))
+		if len(key) != crypto.Ed25519PublicKeySize {
+			return fmt.Errorf("%w: ed25519 expect %d bytes, got %d", crypto.ErrInvalidKeySize, crypto.Ed25519PrivateKeySize, len(key))
 		}
 	case Algorithm_ALGORITHM_ECDSA_P256:
 		return ErrAlgorithmNotSupported
@@ -179,8 +176,8 @@ func (tx *Transaction) Validate() error {
 	}
 
 	sig := tx.GetSignature()
-	if len(sig) > 0 && len(sig) != Ed25519SigSize {
-		return fmt.Errorf("transaction: %w", ErrInvalidSignatureSize)
+	if len(sig) > 0 && len(sig) != crypto.Ed25519SignatureSize {
+		return fmt.Errorf("transaction: %w", crypto.ErrInvalidSignatureSize)
 	}
 
 	chainID := tx.GetChainId()

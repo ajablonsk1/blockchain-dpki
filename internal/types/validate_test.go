@@ -4,16 +4,18 @@ import (
 	"errors"
 	"strings"
 	"testing"
+
+	"github.com/ajablonsk1/blockchain-dpki/internal/crypto"
 )
 
 // --- helpers ---
 
 func validKey() []byte {
-	return make([]byte, Ed25519KeySize)
+	return make([]byte, crypto.Ed25519PublicKeySize)
 }
 
 func validSig() []byte {
-	return make([]byte, Ed25519SigSize)
+	return make([]byte, crypto.Ed25519SignatureSize)
 }
 
 func validCert() *Certificate {
@@ -37,7 +39,7 @@ func TestValidatePublicKey(t *testing.T) {
 		// --- happy paths ---
 		{
 			name:    "valid ed25519 key",
-			key:     make([]byte, Ed25519KeySize),
+			key:     make([]byte, crypto.Ed25519PublicKeySize),
 			algo:    Algorithm_ALGORITHM_ED25519,
 			wantErr: nil,
 		},
@@ -45,19 +47,19 @@ func TestValidatePublicKey(t *testing.T) {
 		// --- errors: algorithm ---
 		{
 			name:    "unspecified algorithm",
-			key:     make([]byte, Ed25519KeySize),
+			key:     make([]byte, crypto.Ed25519PublicKeySize),
 			algo:    Algorithm_ALGORITHM_UNSPECIFIED,
 			wantErr: ErrUnknownAlgorithm,
 		},
 		{
 			name:    "ecdsa p256 not supported",
-			key:     make([]byte, Ed25519KeySize),
+			key:     make([]byte, crypto.Ed25519PublicKeySize),
 			algo:    Algorithm_ALGORITHM_ECDSA_P256,
 			wantErr: ErrAlgorithmNotSupported,
 		},
 		{
 			name:    "unknown algorithm value",
-			key:     make([]byte, Ed25519KeySize),
+			key:     make([]byte, crypto.Ed25519PublicKeySize),
 			algo:    Algorithm(9999),
 			wantErr: ErrUnknownAlgorithm,
 		},
@@ -65,27 +67,27 @@ func TestValidatePublicKey(t *testing.T) {
 		// --- errors: ed25519 key size ---
 		{
 			name:    "ed25519 key too short",
-			key:     make([]byte, Ed25519KeySize-1),
+			key:     make([]byte, crypto.Ed25519PublicKeySize-1),
 			algo:    Algorithm_ALGORITHM_ED25519,
-			wantErr: ErrInvalidKeySize,
+			wantErr: crypto.ErrInvalidKeySize,
 		},
 		{
 			name:    "ed25519 key too long",
-			key:     make([]byte, Ed25519KeySize+1),
+			key:     make([]byte, crypto.Ed25519PublicKeySize+1),
 			algo:    Algorithm_ALGORITHM_ED25519,
-			wantErr: ErrInvalidKeySize,
+			wantErr: crypto.ErrInvalidKeySize,
 		},
 		{
 			name:    "ed25519 key empty",
 			key:     []byte{},
 			algo:    Algorithm_ALGORITHM_ED25519,
-			wantErr: ErrInvalidKeySize,
+			wantErr: crypto.ErrInvalidKeySize,
 		},
 		{
 			name:    "ed25519 key nil",
 			key:     nil,
 			algo:    Algorithm_ALGORITHM_ED25519,
-			wantErr: ErrInvalidKeySize,
+			wantErr: crypto.ErrInvalidKeySize,
 		},
 	}
 
@@ -171,7 +173,7 @@ func TestCertificate_Validate(t *testing.T) {
 				Algorithm: Algorithm_ALGORITHM_ED25519,
 				ValidFrom: MinValidTimestamp,
 			},
-			wantErr: ErrInvalidKeySize,
+			wantErr: crypto.ErrInvalidKeySize,
 		},
 		{
 			name: "unspecified algorithm",
@@ -282,7 +284,7 @@ func TestRegisterTx_Validate(t *testing.T) {
 				Algorithm: Algorithm_ALGORITHM_ED25519,
 				ValidFrom: MinValidTimestamp,
 			}},
-			wantErr: ErrInvalidKeySize,
+			wantErr: crypto.ErrInvalidKeySize,
 		},
 	}
 
@@ -478,7 +480,7 @@ func TestRotateTx_Validate(t *testing.T) {
 				NewPublicKey: make([]byte, 16),
 				NewAlgorithm: Algorithm_ALGORITHM_ED25519,
 			},
-			wantErr: ErrInvalidKeySize,
+			wantErr: crypto.ErrInvalidKeySize,
 		},
 		{
 			name: "unspecified new algorithm",
@@ -597,19 +599,19 @@ func TestTransaction_Validate(t *testing.T) {
 			name: "signature wrong size",
 			tx: &Transaction{
 				ChainId:   "mainnet",
-				Signature: make([]byte, Ed25519SigSize-1),
+				Signature: make([]byte, crypto.Ed25519SignatureSize-1),
 				Body:      validRegisterBody,
 			},
-			wantErr: ErrInvalidSignatureSize,
+			wantErr: crypto.ErrInvalidSignatureSize,
 		},
 		{
 			name: "signature too long",
 			tx: &Transaction{
 				ChainId:   "mainnet",
-				Signature: make([]byte, Ed25519SigSize+1),
+				Signature: make([]byte, crypto.Ed25519SignatureSize+1),
 				Body:      validRegisterBody,
 			},
-			wantErr: ErrInvalidSignatureSize,
+			wantErr: crypto.ErrInvalidSignatureSize,
 		},
 
 		// --- errors: chain id ---
@@ -701,7 +703,7 @@ func TestTransaction_Validate(t *testing.T) {
 					NewAlgorithm: Algorithm_ALGORITHM_ED25519,
 				}},
 			},
-			wantErr: ErrInvalidKeySize,
+			wantErr: crypto.ErrInvalidKeySize,
 		},
 	}
 
