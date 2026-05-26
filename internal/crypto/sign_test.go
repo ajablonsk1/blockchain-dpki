@@ -187,6 +187,20 @@ func TestVerify_TamperedData(t *testing.T) {
 	}
 }
 
+func TestVerify_SingleBitFlip(t *testing.T) {
+	priv, pub, _ := GenerateEd25519KeyPair()
+	msg := []byte("original message")
+	sig, _ := Sign(priv, msg)
+
+	flipped := make([]byte, len(msg))
+	copy(flipped, msg)
+	flipped[0] ^= 0x01
+
+	if Verify(pub, flipped, sig) {
+		t.Fatal("Verify returned true after single-bit flip in data")
+	}
+}
+
 func TestVerify_TamperedSignature(t *testing.T) {
 	priv, pub, _ := GenerateEd25519KeyPair()
 	msg := []byte("test message")

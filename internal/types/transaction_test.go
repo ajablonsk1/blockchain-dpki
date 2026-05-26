@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ajablonsk1/blockchain-dpki/internal/crypto"
+	"google.golang.org/protobuf/proto"
 )
 
 // validRegisterTx returns a well-formed register transaction for use in tests.
@@ -192,6 +193,19 @@ func TestTransaction_Verify_WrongKey(t *testing.T) {
 	}
 }
 
+func TestTransaction_Verify_ModifiedBody(t *testing.T) {
+	tx, priv, pub := validRegisterTx(t)
+
+	if err := tx.Sign(priv); err != nil {
+		t.Fatalf("Sign: %v", err)
+	}
+
+	tx.ChainId = "different-chain"
+	if tx.Verify(pub) {
+		t.Fatal("Verify returned true after modifying the transaction body")
+	}
+}
+
 func TestTransaction_Verify_TamperedSignature(t *testing.T) {
 	tx, priv, pub := validRegisterTx(t)
 
@@ -296,4 +310,28 @@ func TestTransaction_GetDomainFromBody(t *testing.T) {
 			}
 		})
 	}
+}
+
+func FuzzTransactionDeserialize(f *testing.F) {
+	tx := &Transaction{
+		Body:    &Transaction_Revoke{Revoke: &RevokeTx{Domain: "example.com", Nonce: 1}},
+		ChainId: "testchain",
+	}
+	seed, _ := proto.Marshal(tx)
+
+	f.Add([]byte{})
+	f.Add([]byte{0x00})
+	f.Add(seed)
+
+	f.Fuzz(func(t *testing.T, data []byte) {
+		parsed := &Transaction{}
+		if err := proto.Unmarshal(data, parsed); err != nil {
+			return
+		}
+		_ = parsed.Validate()
+		_, _ = parsed.SignBytes()
+		_, _ = parsed.Hash()
+		_ = parsed.BodyType()
+		_ = parsed.GetDomainFromBody()
+	})
 }
