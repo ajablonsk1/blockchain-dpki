@@ -20,6 +20,7 @@ import (
 
 	"github.com/ajablonsk1/blockchain-dpki/internal/app"
 	"github.com/ajablonsk1/blockchain-dpki/internal/state"
+	"github.com/ajablonsk1/blockchain-dpki/internal/verifier"
 )
 
 // runStart loads the node home, builds the DPKI application over an in-memory
@@ -30,6 +31,7 @@ import (
 func runStart(args []string) error {
 	fs := flag.NewFlagSet("start", flag.ExitOnError)
 	home := fs.String("home", defaultHome(), "node home directory")
+	noVerify := fs.Bool("no-verify", false, "accept registrations without DNS ownership verification (testing only)")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
@@ -46,7 +48,16 @@ func runStart(args []string) error {
 
 	appLogger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 	smt := state.NewSMT(state.NewMemoryStore())
-	application := app.NewApp(smt, genDoc.ChainID, appLogger)
+
+	var v verifier.Verifier
+	if *noVerify {
+		appLogger.Warn("DNS ownership verification disabled (--no-verify); registrations are not authenticated")
+		v = verifier.AllowAllVerifier()
+	} else {
+		v = verifier.NewDNSVerifier(verifier.SystemResolver(), genDoc.ChainID, verifier.DefaultTimeout, appLogger)
+	}
+
+	application := app.NewApp(smt, v, genDoc.ChainID, appLogger)
 
 	pv := privval.LoadFilePV(config.PrivValidatorKeyFile(), config.PrivValidatorStateFile())
 	nodeKey, err := p2p.LoadNodeKey(config.NodeKeyFile())

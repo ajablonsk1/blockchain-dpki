@@ -14,10 +14,7 @@ import (
 // semantic check (does the domain exist when it must, is the nonce not already
 // stale). The authoritative, exact-nonce semantic check happens in
 // FinalizeBlock, because the mempool may hold transactions slightly out of order.
-func (app *App) CheckTx(_ context.Context, req *abci.RequestCheckTx) (*abci.ResponseCheckTx, error) {
-	app.mu.RLock()
-	defer app.mu.RUnlock()
-
+func (app *App) CheckTx(ctx context.Context, req *abci.RequestCheckTx) (*abci.ResponseCheckTx, error) {
 	tx, err := decodeTransaction(req.Tx)
 	if err != nil {
 		return checkErr(CodeDecode, "%v", err), nil
@@ -28,11 +25,30 @@ func (app *App) CheckTx(_ context.Context, req *abci.RequestCheckTx) (*abci.Resp
 	if tx.GetChainId() != app.chainID {
 		return checkErr(CodeChainID, "wrong chain id: got %q want %q", tx.GetChainId(), app.chainID), nil
 	}
-	if _, err := app.verifySignature(tx); err != nil {
-		return checkErr(CodeSignature, "%v", err), nil
+
+	// State-dependent checks under the read lock.
+	app.mu.RLock()
+	_, sigErr := app.verifySignature(tx)
+	var semErr error
+	if sigErr == nil {
+		semErr = app.lightSemanticCheck(tx)
 	}
-	if err := app.lightSemanticCheck(tx); err != nil {
-		return checkErr(CodeSemantic, "%v", err), nil
+	app.mu.RUnlock()
+
+	if sigErr != nil {
+		return checkErr(CodeSignature, "%v", sigErr), nil
+	}
+	if semErr != nil {
+		return checkErr(CodeSemantic, "%v", semErr), nil
+	}
+
+	// Domain-ownership verification for registrations. This is a DNS lookup —
+	// non-deterministic external I/O — so it runs OUTSIDE the state lock and is a
+	// pre-consensus admission gate only, never part of FinalizeBlock.
+	if reg := tx.GetRegister(); reg != nil {
+		if err := app.verifier.Verify(ctx, reg); err != nil {
+			return checkErr(CodeVerification, "%v", err), nil
+		}
 	}
 
 	return checkOK(), nil

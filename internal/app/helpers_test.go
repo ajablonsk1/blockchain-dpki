@@ -11,6 +11,7 @@ import (
 	"github.com/ajablonsk1/blockchain-dpki/internal/crypto"
 	"github.com/ajablonsk1/blockchain-dpki/internal/state"
 	"github.com/ajablonsk1/blockchain-dpki/internal/types"
+	"github.com/ajablonsk1/blockchain-dpki/internal/verifier"
 )
 
 const (
@@ -21,9 +22,18 @@ const (
 // testBlockTime is the deterministic block timestamp used by the test harness.
 var testBlockTime = time.Unix(testValidFrom, 0).UTC()
 
+// newTestApp builds an App with an allow-all verifier, so tests that are not
+// about domain verification (handlers, determinism, STRIDE) are unaffected by it.
 func newTestApp(t *testing.T) *App {
 	t.Helper()
-	return NewApp(state.NewSMT(state.NewMemoryStore()), testChainID, nil)
+	return NewApp(state.NewSMT(state.NewMemoryStore()), verifier.AllowAllVerifier(), testChainID, nil)
+}
+
+// newTestAppWithVerifier builds an App with a specific verifier, for tests that
+// exercise the domain-ownership gate.
+func newTestAppWithVerifier(t *testing.T, v verifier.Verifier) *App {
+	t.Helper()
+	return NewApp(state.NewSMT(state.NewMemoryStore()), v, testChainID, nil)
 }
 
 // keypair returns a fresh Ed25519 key pair.

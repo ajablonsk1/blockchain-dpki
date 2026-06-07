@@ -8,6 +8,7 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 
 	"github.com/ajablonsk1/blockchain-dpki/internal/state"
+	"github.com/ajablonsk1/blockchain-dpki/internal/verifier"
 )
 
 // Version identifiers reported in the ABCI Info response.
@@ -35,25 +36,32 @@ const (
 type App struct {
 	abci.BaseApplication
 
-	mu      sync.RWMutex
-	smt     *state.SMT
-	chainID string
-	height  int64
-	logger  *slog.Logger
+	mu       sync.RWMutex
+	smt      *state.SMT
+	verifier verifier.Verifier
+	chainID  string
+	height   int64
+	logger   *slog.Logger
 }
 
 var _ abci.Application = (*App)(nil)
 
-// NewApp returns an App backed by smt for the given chainID. chainID is supplied
-// by the node (from the genesis file) rather than learned from InitChain, so the
-// application validates transactions correctly after a restart, when CometBFT
-// replays blocks via FinalizeBlock without calling InitChain again. A nil logger
-// is replaced with a discarding logger.
-func NewApp(smt *state.SMT, chainID string, logger *slog.Logger) *App {
+// NewApp returns an App backed by smt for the given chainID, using v to verify
+// domain ownership on registrations. chainID is supplied by the node (from the
+// genesis file) rather than learned from InitChain, so the application validates
+// transactions correctly after a restart, when CometBFT replays blocks via
+// FinalizeBlock without calling InitChain again.
+//
+// A nil verifier defaults to an allow-all verifier (useful for tests and for a
+// node run without DNS); a nil logger to a discarding logger.
+func NewApp(smt *state.SMT, v verifier.Verifier, chainID string, logger *slog.Logger) *App {
+	if v == nil {
+		v = verifier.AllowAllVerifier()
+	}
 	if logger == nil {
 		logger = slog.New(slog.DiscardHandler)
 	}
-	return &App{smt: smt, chainID: chainID, logger: logger}
+	return &App{smt: smt, verifier: v, chainID: chainID, logger: logger}
 }
 
 // Info reports the application version and the last committed height and app
@@ -99,9 +107,9 @@ func (app *App) InitChain(_ context.Context, req *abci.RequestInitChain) (*abci.
 }
 
 // Commit finalizes the block. Because FinalizeBlock applies each transaction
-// directly to the tree (there is no separate working copy — see ADR 009), the
-// state is already durable by the time Commit is called, so this is a no-op that
-// simply acknowledges the block.
+// directly to the tree (there is no separate working copy), the state is already
+// durable by the time Commit is called, so this is a no-op that simply
+// acknowledges the block.
 func (app *App) Commit(_ context.Context, _ *abci.RequestCommit) (*abci.ResponseCommit, error) {
 	return &abci.ResponseCommit{}, nil
 }

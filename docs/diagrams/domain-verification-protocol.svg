@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="560" viewBox="0 0 720 560" font-family="Helvetica, Arial, sans-serif">
+  <style>
+    .title { font-size: 17px; font-weight: bold; fill: #1a1a1a; }
+    .actor { font-size: 13px; font-weight: bold; fill: #1a1a1a; }
+    .msg   { font-size: 11.5px; fill: #333; }
+    .note  { font-size: 11px; fill: #666; }
+    .life  { stroke: #999; stroke-width: 1; stroke-dasharray: 4 3; }
+    .flow  { stroke: #2b6cb0; stroke-width: 1.8; marker-end: url(#ah); }
+    .ret   { stroke: #2f855a; stroke-width: 1.8; marker-end: url(#ag); stroke-dasharray: 5 3; }
+    .head  { fill: #f7f9fb; stroke: #2b6cb0; stroke-width: 1.5; }
+  </style>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2b6cb0"/>
+    </marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2f855a"/>
+    </marker>
+  </defs>
+
+  <text x="360" y="26" text-anchor="middle" class="title">Domain registration with DNS-01 ownership verification</text>
+
+  <!-- lifelines -->
+  <g>
+    <rect x="70"  y="44" width="120" height="30" rx="6" class="head"/>
+    <text x="130" y="64" text-anchor="middle" class="actor">Owner (dpki-cli)</text>
+    <line x1="130" y1="74" x2="130" y2="520" class="life"/>
+
+    <rect x="300" y="44" width="120" height="30" rx="6" class="head"/>
+    <text x="360" y="64" text-anchor="middle" class="actor">DNS server</text>
+    <line x1="360" y1="74" x2="360" y2="520" class="life"/>
+
+    <rect x="530" y="44" width="140" height="30" rx="6" class="head"/>
+    <text x="600" y="64" text-anchor="middle" class="actor">DPKI node (App)</text>
+    <line x1="600" y1="74" x2="600" y2="520" class="life"/>
+  </g>
+
+  <!-- 1 local compute -->
+  <text x="130" y="100" text-anchor="middle" class="note">1. keypair +</text>
+  <text x="130" y="114" text-anchor="middle" class="note">ChallengeValue</text>
+
+  <!-- 2 publish TXT -->
+  <line x1="130" y1="134" x2="356" y2="134" class="flow"/>
+  <text x="135" y="128" class="msg">2. publish TXT _dpki-challenge.example.com (low TTL)</text>
+
+  <!-- 3 grace / check -->
+  <line x1="130" y1="166" x2="356" y2="166" class="flow"/>
+  <text x="135" y="160" class="msg">3. challenge-check (wait for propagation, ADR 016)</text>
+  <line x1="356" y1="184" x2="134" y2="184" class="ret"/>
+  <text x="180" y="198" class="note">TXT record value</text>
+
+  <!-- 4 RegisterTx -->
+  <line x1="130" y1="226" x2="596" y2="226" class="flow"/>
+  <text x="135" y="220" class="msg">4. RegisterTx (cert: domain, pubKey; signed)</text>
+
+  <!-- 5 CheckTx verify -->
+  <rect x="540" y="240" width="160" height="18" fill="#eef6ee" stroke="#2f855a"/>
+  <text x="546" y="253" class="note">CheckTx: admit to mempool</text>
+  <line x1="600" y1="270" x2="364" y2="270" class="flow"/>
+  <text x="380" y="264" class="msg">5. LookupTXT _dpki-challenge.example.com</text>
+  <line x1="360" y1="288" x2="596" y2="288" class="ret"/>
+  <text x="400" y="302" class="note">records</text>
+
+  <!-- 6 compare -->
+  <rect x="540" y="312" width="170" height="32" fill="#eef6ee" stroke="#2f855a"/>
+  <text x="546" y="325" class="note">6. expected == record ?</text>
+  <text x="546" y="339" class="note">ProcessProposal re-verifies (ADR 014)</text>
+
+  <!-- 7 finalize -->
+  <rect x="540" y="356" width="170" height="32" fill="#eef6ee" stroke="#2f855a"/>
+  <text x="546" y="369" class="note">7. FinalizeBlock: apply</text>
+  <text x="546" y="383" class="note">(NO DNS — deterministic)</text>
+
+  <!-- 8 accepted -->
+  <line x1="596" y1="408" x2="134" y2="408" class="ret"/>
+  <text x="300" y="402" text-anchor="middle" class="msg">8. tx committed; new app hash</text>
+
+  <!-- 9 cleanup -->
+  <line x1="130" y1="446" x2="356" y2="446" class="flow"/>
+  <text x="135" y="440" class="msg">9. delete DNS TXT (no longer needed)</text>
+
+  <text x="360" y="500" text-anchor="middle" class="note">Front-running defeated: the challenge is bound to the owner's public key (ADR 015),</text>
+  <text x="360" y="516" text-anchor="middle" class="note">so an attacker using a different key computes a different expected value and fails verification.</text>
+</svg>

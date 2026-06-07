@@ -19,6 +19,7 @@ const (
 	CodeChainID
 	CodeSignature
 	CodeSemantic
+	CodeVerification
 	CodeInternal
 	CodeUnknownQuery
 )

@@ -1,5 +1,27 @@
 # Diagramy
 
+## `domain-verification-protocol.svg` — rejestracja z weryfikacją DNS-01
+
+Protokół Fazy 4: właściciel publikuje rekord TXT wyzwania, węzeł weryfikuje go w
+CheckTx/ProcessProposal (nie w FinalizeBlock — ADR 014), a wyzwanie związane z
+kluczem publicznym pokonuje front-running (ADR 015).
+
+```
+Owner (dpki-cli)        DNS server          DPKI node (App)
+   │ 1. keypair + ChallengeValue                 │
+   │── 2. publish TXT _dpki-challenge.example.com ─>│  (DNS)
+   │── 3. challenge-check (czekaj na propagację) ──>│
+   │<─────── TXT value ─────────────────────────────│
+   │── 4. RegisterTx (cert, signed) ───────────────────────────>│
+   │                          5. CheckTx: LookupTXT ─>│ (DNS)
+   │                          6. expected == record? (ProcessProposal)
+   │                          7. FinalizeBlock: apply (NO DNS, deterministic)
+   │<──────────── 8. tx committed; new app hash ────────────────│
+   │── 9. delete DNS TXT ─────────────────────────>│
+```
+
+Źródło wektorowe: `domain-verification-protocol.svg`.
+
 ## `app-architecture.svg` — architektura aplikacji ABCI (`internal/app`)
 
 Węzeł DPKI: CometBFT steruje aplikacją przez ABCI 2.0; aplikacja waliduje i

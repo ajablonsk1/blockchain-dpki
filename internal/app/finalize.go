@@ -14,7 +14,7 @@ import (
 // Merkle root). In ABCI 2.0 the app hash is returned here, not from Commit.
 //
 // Each transaction is applied directly to the tree; there is no separate working
-// copy (see ADR 009). A failing transaction returns a non-zero result code and
+// copy. A failing transaction returns a non-zero result code and
 // leaves state untouched, but does not abort the block: consensus has already
 // agreed to include these bytes, and a bad transaction is a rejected
 // transaction, not a node crash.
