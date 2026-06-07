@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="660" height="600" viewBox="0 0 660 600" font-family="Helvetica, Arial, sans-serif">
+  <style>
+    .title  { font-size: 18px; font-weight: bold; fill: #1a1a1a; }
+    .layer  { font-size: 15px; font-weight: bold; fill: #1a1a1a; }
+    .api    { font-size: 12px; fill: #333; font-family: 'Courier New', monospace; }
+    .note   { font-size: 11px; fill: #666; }
+    .box    { fill: #ffffff; stroke: #444; stroke-width: 1.5; }
+    .outer  { fill: #f7f9fb; stroke: #2b6cb0; stroke-width: 2; }
+    .comet  { fill: #eef6ee; stroke: #2f855a; stroke-width: 2; }
+    .arrow  { stroke: #2b6cb0; stroke-width: 2; marker-end: url(#ah); fill: none; }
+  </style>
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2b6cb0"/>
+    </marker>
+  </defs>
+
+  <text x="330" y="30" text-anchor="middle" class="title">DPKI node — ABCI 2.0 application (internal/app)</text>
+
+  <!-- CometBFT core -->
+  <rect x="60" y="50" width="540" height="64" rx="10" class="comet"/>
+  <text x="80" y="74" class="layer">CometBFT Core (v0.38)</text>
+  <text x="80" y="96" class="note">consensus · P2P · mempool · block store · RPC — drives the app over ABCI</text>
+
+  <line x1="330" y1="114" x2="330" y2="140" class="arrow"/>
+  <text x="345" y="132" class="note">ABCI 2.0</text>
+
+  <!-- App outer -->
+  <rect x="60" y="140" width="540" height="330" rx="10" class="outer"/>
+  <text x="80" y="164" class="layer">App  (embeds abci.BaseApplication)</text>
+
+  <!-- ABCI methods row -->
+  <rect x="80" y="178" width="240" height="120" rx="8" class="box"/>
+  <text x="96" y="200" class="layer">ABCI entry points</text>
+  <text x="96" y="222" class="api">Info / InitChain</text>
+  <text x="96" y="240" class="api">CheckTx        (light)</text>
+  <text x="96" y="258" class="api">FinalizeBlock  (full)</text>
+  <text x="96" y="276" class="api">Commit / Query</text>
+  <text x="96" y="293" class="note">RWMutex: write=Finalize, read=Check/Query</text>
+
+  <!-- validation -->
+  <rect x="340" y="178" width="240" height="120" rx="8" class="box"/>
+  <text x="356" y="200" class="layer">Validation pipeline</text>
+  <text x="356" y="222" class="api">decode → Validate()</text>
+  <text x="356" y="240" class="api">chain id → signature</text>
+  <text x="356" y="258" class="api">semantic (nonce, exists)</text>
+  <text x="356" y="276" class="note">ADR 011: light in CheckTx,</text>
+  <text x="356" y="291" class="note">exact-nonce in FinalizeBlock</text>
+
+  <line x1="200" y1="298" x2="200" y2="326" class="arrow"/>
+  <line x1="460" y1="298" x2="460" y2="326" class="arrow"/>
+
+  <!-- handlers -->
+  <rect x="80" y="326" width="500" height="60" rx="8" class="box"/>
+  <text x="96" y="350" class="layer">Handlers (per tx type)</text>
+  <text x="96" y="372" class="api">handleRegister · handleRevoke · handleRotate    — mutate state, emit events</text>
+
+  <line x1="330" y1="386" x2="330" y2="412" class="arrow"/>
+
+  <!-- state -->
+  <rect x="80" y="412" width="500" height="46" rx="8" class="box"/>
+  <text x="96" y="440" class="layer">internal/state — Sparse Merkle Tree  →  app hash (Merkle root)</text>
+
+  <!-- query/proof out -->
+  <text x="330" y="500" text-anchor="middle" class="note">Query "/domain/proof" returns DomainState + compressed proof (ProofOps, ADR 010)</text>
+  <text x="330" y="520" text-anchor="middle" class="note">light client verifies it offline with state.VerifyDomainProof against the app hash</text>
+  <text x="330" y="556" text-anchor="middle" class="note">FinalizeBlock applies state directly and returns the app hash (ADR 009); Commit is a no-op</text>
+</svg>
