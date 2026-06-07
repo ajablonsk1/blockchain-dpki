@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="560" viewBox="0 0 640 560" font-family="Helvetica, Arial, sans-serif">
+  <style>
+    .title  { font-size: 18px; font-weight: bold; fill: #1a1a1a; }
+    .layer  { font-size: 15px; font-weight: bold; fill: #1a1a1a; }
+    .api    { font-size: 12px; fill: #333; font-family: 'Courier New', monospace; }
+    .note   { font-size: 11px; fill: #666; }
+    .box    { fill: #ffffff; stroke: #444; stroke-width: 1.5; rx: 8; }
+    .outer  { fill: #f7f9fb; stroke: #2b6cb0; stroke-width: 2; rx: 10; }
+    .arrow  { stroke: #2b6cb0; stroke-width: 2; marker-end: url(#ah); fill: none; }
+  </style>
+
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2b6cb0"/>
+    </marker>
+  </defs>
+
+  <text x="320" y="30" text-anchor="middle" class="title">internal/state — authenticated state store</text>
+
+  <!-- outer container -->
+  <rect x="40" y="55" width="560" height="470" class="outer"/>
+
+  <!-- Domain helpers (domain.go) -->
+  <rect x="80" y="80" width="480" height="92" class="box"/>
+  <text x="100" y="104" class="layer">Domain layer — domain.go</text>
+  <text x="100" y="126" class="api">SetDomain / GetDomain / DeleteDomain</text>
+  <text x="100" y="144" class="api">ProveDomain / VerifyDomainProof</text>
+  <text x="100" y="163" class="note">domain → SHA-256 key; DomainState (de)serialized as deterministic protobuf</text>
+
+  <line x1="320" y1="172" x2="320" y2="200" class="arrow"/>
+
+  <!-- SMT + Proof -->
+  <rect x="80" y="200" width="480" height="110" class="box"/>
+  <text x="100" y="224" class="layer">SMT — smt.go + proof.go</text>
+  <text x="100" y="246" class="api">Set / Get / Delete / Root</text>
+  <text x="100" y="264" class="api">Prove / VerifyProof  (inclusion &amp; non-inclusion)</text>
+  <text x="100" y="285" class="note">Sparse Merkle Tree, fixed depth 256, SHA-256, domain-separated</text>
+  <text x="100" y="301" class="note">leaf/internal hashes; compressed proofs (bitmap + non-default siblings)</text>
+
+  <line x1="320" y1="310" x2="320" y2="338" class="arrow"/>
+
+  <!-- KVStore interface -->
+  <rect x="80" y="338" width="480" height="70" class="box"/>
+  <text x="100" y="362" class="layer">KVStore — kvstore.go</text>
+  <text x="100" y="384" class="api">Get / Set / Delete / Close</text>
+  <text x="100" y="401" class="note">minimal backend interface; SMT depends only on this</text>
+
+  <line x1="320" y1="408" x2="320" y2="436" class="arrow"/>
+
+  <!-- Backends -->
+  <rect x="80" y="436" width="230" height="66" class="box"/>
+  <text x="100" y="460" class="layer">MemoryStore</text>
+  <text x="100" y="481" class="note">in-memory, copy-in/out,</text>
+  <text x="100" y="496" class="note">RWMutex — memstore.go</text>
+
+  <rect x="330" y="436" width="230" height="66" class="box" stroke-dasharray="5,4"/>
+  <text x="350" y="460" class="layer">BadgerDB / Pebble</text>
+  <text x="350" y="481" class="note">disk-backed (future,</text>
+  <text x="350" y="496" class="note">ADR 006) — drop-in</text>
+
+  <text x="320" y="544" text-anchor="middle" class="note">Root hash committed by consensus · proofs verifiable offline against the root (ADR 007)</text>
+</svg>

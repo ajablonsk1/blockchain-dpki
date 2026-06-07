@@ -105,7 +105,11 @@ func (s *SMT) Has(key []byte) (bool, error) {
 }
 
 // Set stores value under key and updates the tree so that the new root commits
-// to it. key must be exactly KeySize bytes.
+// to it. key must be exactly KeySize bytes. value must be non-empty: the proof
+// encoding reserves a nil/empty value to mean non-inclusion (see Proof), so an
+// empty value cannot be distinguished from an absent key. The domain layer
+// always stores non-empty protobuf encodings, so this is not a restriction in
+// practice; use Delete to remove a key.
 func (s *SMT) Set(key, value []byte) error {
 	if len(key) != KeySize {
 		return ErrInvalidKeyLength
