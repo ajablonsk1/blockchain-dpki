@@ -1,0 +1,6 @@
+=== All 4 validators produce blocks (2026-06-11 20:13:15 UTC) ===
+node :26657 at height 3 ✓
+node :26667 at height 3 ✓
+node :26677 at height 3 ✓
+node :26687 at height 3 ✓
+PASS: all validators are producing blocks

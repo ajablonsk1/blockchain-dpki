@@ -1,0 +1,43 @@
+# 4-validator DPKI testnet in containers.
+#
+#   ./bin/dpkid testnet init --docker --output-dir ./testnet-docker
+#   docker compose up --build
+#
+# RPC of node{i} is published on host port 26657 + 10*i, matching the local
+# (process-based) testnet, so dpki-cli commands work unchanged.
+# Remove --no-verify from the command to enforce DNS-01 ownership checks.
+
+x-node: &node
+  build: .
+  command: ["start", "--no-verify"]
+  networks: [dpki-net]
+  restart: unless-stopped
+
+services:
+  node0:
+    <<: *node
+    container_name: dpki-node0
+    ports: ["26657:26657"]
+    volumes: ["./testnet-docker/node0:/root/.dpkid"]
+
+  node1:
+    <<: *node
+    container_name: dpki-node1
+    ports: ["26667:26657"]
+    volumes: ["./testnet-docker/node1:/root/.dpkid"]
+
+  node2:
+    <<: *node
+    container_name: dpki-node2
+    ports: ["26677:26657"]
+    volumes: ["./testnet-docker/node2:/root/.dpkid"]
+
+  node3:
+    <<: *node
+    container_name: dpki-node3
+    ports: ["26687:26657"]
+    volumes: ["./testnet-docker/node3:/root/.dpkid"]
+
+networks:
+  dpki-net:
+    driver: bridge

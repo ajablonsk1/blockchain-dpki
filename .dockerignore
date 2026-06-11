@@ -1,0 +1,8 @@
+bin/
+testnet-data/
+testnet-docker/
+docs/
+playground/
+coverage.out
+coverage.html
+.git/

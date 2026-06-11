@@ -1,0 +1,18 @@
+=== Restarted validators replay, sync and rejoin consensus (2026-06-11 20:15:18 UTC) ===
+restarted node0 and node1 (in-memory state rebuilt by block replay)
+node :26657 app hash at height 76: 6FF2626E2CC6A86EFE0390F5F017B8A97C4BE4CF4C2DC85364D100E603A4E4E2
+node :26667 app hash at height 76: 6FF2626E2CC6A86EFE0390F5F017B8A97C4BE4CF4C2DC85364D100E603A4E4E2
+node :26677 app hash at height 76: 6FF2626E2CC6A86EFE0390F5F017B8A97C4BE4CF4C2DC85364D100E603A4E4E2
+node :26687 app hash at height 76: 6FF2626E2CC6A86EFE0390F5F017B8A97C4BE4CF4C2DC85364D100E603A4E4E2
+Domain:       replicated.example.com
+Status:       Active
+Public key:   48b66a0970e18faabfa63f3b78b458b03c166a0b8d255c691a02a5e0ceaf6f4e
+Fingerprint:  336012218354d16e7e986d67540cde7157737b727bae8f94e4ef50887eea3837
+Algorithm:    ALGORITHM_ED25519
+Version:      0
+Nonce:        0
+Valid from:   2026-06-11 20:13:20 UTC
+Height:       76
+App hash:     6FF2626E2CC6A86EFE0390F5F017B8A97C4BE4CF4C2DC85364D100E603A4E4E2
+Proof:        6 sibling(s), verified locally against app hash ✓
+PASS: full recovery — consensus resumed, state identical on all 4 validators

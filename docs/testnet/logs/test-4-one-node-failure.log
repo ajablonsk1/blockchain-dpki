@@ -1,0 +1,7 @@
+=== BFT tolerates 1 of 4 validators failing (2026-06-11 20:14:41 UTC) ===
+killed node0; 3 of 4 validators remain (>2/3 voting power)
+height on node1: 66 -> 70 over 10s
+Domain after-failure.example.com registered successfully
+Block height: 71
+Tx hash:      AE04C0DC206AD2579A14036C164E80351C4CFCE867382BCBAE89366C64142708
+PASS: blocks and writes continue with 3/4 validators

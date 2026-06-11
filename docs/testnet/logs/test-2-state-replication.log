@@ -1,0 +1,56 @@
+=== Tx sent to node0 is readable from every node (2026-06-11 20:13:20 UTC) ===
+Domain replicated.example.com registered successfully
+Block height: 5
+Tx hash:      2C68FFA4511E637CA27F9F5021B64FB13B3E2721D7519440E014BD9BFF12EA78
+Domain:       replicated.example.com
+Status:       Active
+Public key:   48b66a0970e18faabfa63f3b78b458b03c166a0b8d255c691a02a5e0ceaf6f4e
+Fingerprint:  336012218354d16e7e986d67540cde7157737b727bae8f94e4ef50887eea3837
+Algorithm:    ALGORITHM_ED25519
+Version:      0
+Nonce:        0
+Valid from:   2026-06-11 20:13:20 UTC
+Height:       5
+App hash:     C44E68F0B3740BC23B24F3A0BD9B681498BFAEFEA2E403108849307F8F767C19
+Proof:        0 sibling(s), verified locally against app hash ✓
+node :26667 sees the domain ✓
+Domain:       replicated.example.com
+Status:       Active
+Public key:   48b66a0970e18faabfa63f3b78b458b03c166a0b8d255c691a02a5e0ceaf6f4e
+Fingerprint:  336012218354d16e7e986d67540cde7157737b727bae8f94e4ef50887eea3837
+Algorithm:    ALGORITHM_ED25519
+Version:      0
+Nonce:        0
+Valid from:   2026-06-11 20:13:20 UTC
+Height:       6
+App hash:     C44E68F0B3740BC23B24F3A0BD9B681498BFAEFEA2E403108849307F8F767C19
+Proof:        0 sibling(s), verified locally against app hash ✓
+node :26677 sees the domain ✓
+Domain:       replicated.example.com
+Status:       Active
+Public key:   48b66a0970e18faabfa63f3b78b458b03c166a0b8d255c691a02a5e0ceaf6f4e
+Fingerprint:  336012218354d16e7e986d67540cde7157737b727bae8f94e4ef50887eea3837
+Algorithm:    ALGORITHM_ED25519
+Version:      0
+Nonce:        0
+Valid from:   2026-06-11 20:13:20 UTC
+Height:       7
+App hash:     C44E68F0B3740BC23B24F3A0BD9B681498BFAEFEA2E403108849307F8F767C19
+Proof:        0 sibling(s), verified locally against app hash ✓
+node :26687 sees the domain ✓
+✓ http://localhost:26657: proof valid at height 8, app hash C44E68F0B3740BC23B24F3A0BD9B681498BFAEFEA2E403108849307F8F767C19
+✓ http://localhost:26667: proof valid at height 9, app hash C44E68F0B3740BC23B24F3A0BD9B681498BFAEFEA2E403108849307F8F767C19
+✓ http://localhost:26677: proof valid at height 10, app hash C44E68F0B3740BC23B24F3A0BD9B681498BFAEFEA2E403108849307F8F767C19
+✓ http://localhost:26687: proof valid at height 11, app hash C44E68F0B3740BC23B24F3A0BD9B681498BFAEFEA2E403108849307F8F767C19
+
+Domain:       replicated.example.com
+Status:       Active
+Public key:   48b66a0970e18faabfa63f3b78b458b03c166a0b8d255c691a02a5e0ceaf6f4e
+Fingerprint:  336012218354d16e7e986d67540cde7157737b727bae8f94e4ef50887eea3837
+Algorithm:    ALGORITHM_ED25519
+Version:      0
+Nonce:        0
+Valid from:   2026-06-11 20:13:20 UTC
+
+✓ verified by 4/4 node(s), answers consistent
+PASS: state replicated and proven on all 4 nodes

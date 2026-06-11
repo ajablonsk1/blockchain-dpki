@@ -20,6 +20,18 @@ For the full client workflow (keys, DNS-01 challenge, register, lookup with
 Merkle proofs, offline verification) see [`cmd/dpki-cli/README.md`](cmd/dpki-cli/README.md).
 End-to-end test against a real node: `./scripts/test-e2e.sh`.
 
+### Multi-validator testnet
+
+```bash
+./bin/dpkid testnet init                 # 4 validator homes, shared genesis
+./scripts/start-testnet.sh --no-verify   # local processes
+# or: ./bin/dpkid testnet init --docker --output-dir ./testnet-docker && docker compose up --build
+./scripts/test-testnet.sh                # replication, determinism, BFT fault tolerance
+```
+
+See [`docs/testnet/README.md`](docs/testnet/README.md) for topology and the
+fault-tolerance scenarios.
+
 ## Make Targets
 
 | Target | Description |

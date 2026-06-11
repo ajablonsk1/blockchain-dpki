@@ -4,6 +4,7 @@
 //
 //	dpkid init  [--home DIR] [--chain-id ID]   # generate config, keys and genesis
 //	dpkid start [--home DIR]                    # start the node
+//	dpkid testnet init [--validators N] [--chain-id ID] [--output-dir DIR] [--docker]
 package main
 
 import (
@@ -25,6 +26,8 @@ func main() {
 		err = runInit(os.Args[2:])
 	case "start":
 		err = runStart(os.Args[2:])
+	case "testnet":
+		err = runTestnet(os.Args[2:])
 	case "-h", "--help", "help":
 		usage()
 		return
@@ -44,8 +47,9 @@ func usage() {
 	fmt.Fprint(os.Stderr, `dpkid — single-node DPKI blockchain
 
 Commands:
-  init   Generate CometBFT config, validator/node keys and genesis
-  start  Start the node and begin producing blocks
+  init          Generate CometBFT config, validator/node keys and genesis
+  start         Start the node and begin producing blocks
+  testnet init  Generate the homes of an N-validator local testnet
 
 Run "dpkid <command> --help" for command-specific flags.
 `)

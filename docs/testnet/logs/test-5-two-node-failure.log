@@ -1,0 +1,4 @@
+=== Consensus halts with 2 of 4 validators down (2026-06-11 20:14:58 UTC) ===
+killed node1; 2 of 4 validators remain (<2/3 voting power)
+height on node2: 71 -> 71 over 15s
+PASS: consensus halted, no block can be finalized (safety over liveness)
