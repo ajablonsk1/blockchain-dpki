@@ -16,6 +16,10 @@ make run-dpkid    # build and run the blockchain node
 make run-client   # build and run the CLI client
 ```
 
+For the full client workflow (keys, DNS-01 challenge, register, lookup with
+Merkle proofs, offline verification) see [`cmd/dpki-cli/README.md`](cmd/dpki-cli/README.md).
+End-to-end test against a real node: `./scripts/test-e2e.sh`.
+
 ## Make Targets
 
 | Target | Description |
@@ -35,12 +39,13 @@ make run-client   # build and run the CLI client
 .
 ├── cmd/
 │   ├── dpkid/          # blockchain node entrypoint
-│   └── dpki-cli/       # CLI client entrypoint
+│   └── dpki-cli/       # CLI client (commands/ + RPC client/)
 ├── internal/
 │   ├── app/            # application logic
 │   ├── crypto/         # cryptographic primitives
 │   ├── state/          # blockchain state management
-│   └── types/          # shared domain types
+│   ├── types/          # shared domain types
+│   └── verifier/       # DNS-01 domain ownership verification
 ├── pkg/
 │   └── merkle/         # reusable Merkle tree library
 ├── playground/         # prototypes and experiments
