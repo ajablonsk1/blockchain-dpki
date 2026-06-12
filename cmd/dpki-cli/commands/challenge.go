@@ -54,10 +54,11 @@ func newChallengeCommand(o *opts) *cobra.Command {
 			name := verifier.ChallengeName(domain)
 			value := verifier.ChallengeValue(domain, pub, chainID)
 
-			out := cmd.OutOrStdout()
-			fmt.Fprintf(out, "Publish this DNS TXT record, then submit the RegisterTx:\n\n")
-			fmt.Fprintf(out, "  %s.  IN  TXT  %q\n\n", name, value)
-			fmt.Fprintf(out, "Tip: set a low TTL (e.g. 60s) for fast propagation; remove it after registration.\n")
+			fmt.Fprintf(cmd.OutOrStdout(),
+				"Publish this DNS TXT record, then submit the RegisterTx:\n\n"+
+					"  %s.  IN  TXT  %q\n\n"+
+					"Tip: set a low TTL (e.g. 60s) for fast propagation; remove it after registration.\n",
+				name, value)
 			return nil
 		},
 	}

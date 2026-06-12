@@ -1,0 +1,13 @@
+version: "2"
+
+linters:
+  settings:
+    errcheck:
+      # CLI user-facing output: a write error on stdout/stderr is not
+      # actionable, and aborting a command because a progress line failed to
+      # print would be worse. Errors that matter (file writes, RPC, state)
+      # remain checked.
+      exclude-functions:
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln

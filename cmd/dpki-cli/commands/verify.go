@@ -71,7 +71,7 @@ be trusted.`,
 			// All agreeing verdicts prove the same state; show it once.
 			for _, v := range verdicts {
 				if v.err == nil {
-					fmt.Fprintln(out)
+					fmt.Fprintf(out, "\n")
 					printDomainState(out, domain, v.state, v.present)
 					break
 				}

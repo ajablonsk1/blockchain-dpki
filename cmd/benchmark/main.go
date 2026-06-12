@@ -87,22 +87,34 @@ func main() {
 		os.Exit(1)
 	}
 
+	if err := writeReport(*output, &rep); err != nil {
+		fmt.Fprintf(os.Stderr, "benchmark: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+// writeReport encodes the report to path, or stdout when path is empty. A
+// close error must surface: a truncated report is worse than no report.
+func writeReport(path string, rep *report) error {
 	out := os.Stdout
-	if *output != "" {
-		f, err := os.Create(*output)
+	if path != "" {
+		f, err := os.Create(path)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "benchmark: %v\n", err)
-			os.Exit(1)
+			return err
 		}
-		defer f.Close()
+		defer func() {
+			if cerr := f.Close(); cerr != nil {
+				fmt.Fprintf(os.Stderr, "benchmark: close %s: %v\n", path, cerr)
+			}
+		}()
 		out = f
 	}
 	enc := json.NewEncoder(out)
 	enc.SetIndent("", "  ")
 	if err := enc.Encode(rep); err != nil {
-		fmt.Fprintf(os.Stderr, "benchmark: encode report: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("encode report: %w", err)
 	}
+	return nil
 }
 
 func parseInts(csv string) ([]int, error) {
