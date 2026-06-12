@@ -32,6 +32,16 @@ End-to-end test against a real node: `./scripts/test-e2e.sh`.
 See [`docs/testnet/README.md`](docs/testnet/README.md) for topology and the
 fault-tolerance scenarios.
 
+### Evaluation (security + performance)
+
+```bash
+./scripts/run-benchmarks.sh                       # full campaign -> results/<timestamp>/
+python3 scripts/plot-results.py results/<ts>      # charts (PNG+SVG) for the thesis
+go test -run 'TestSTRIDE|TestFrontRunning' ./internal/app -v   # security suite alone
+```
+
+Threat model and STRIDE mapping: [`docs/security/adversary-model.md`](docs/security/adversary-model.md).
+
 ## Make Targets
 
 | Target | Description |

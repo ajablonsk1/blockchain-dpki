@@ -1,0 +1,47 @@
+{
+  "suite": "proof",
+  "timestamp": "2026-06-12T08:00:45Z",
+  "env": {
+    "go_version": "go1.26.3",
+    "goos": "darwin",
+    "goarch": "arm64",
+    "num_cpu": 12,
+    "cpu_model": "Apple M2 Max",
+    "cometbft_version": "v0.38.23"
+  },
+  "proof": [
+    {
+      "domains": 1000,
+      "samples": 200,
+      "avg_proof_bytes": 465.64,
+      "max_proof_bytes": 553,
+      "avg_siblings": 10.27,
+      "avg_verify_us": 27.54,
+      "non_inclusion_avg_proof_bytes": 392.4,
+      "non_inclusion_avg_verify_us": 28.94,
+      "non_inclusion_samples": 50
+    },
+    {
+      "domains": 10000,
+      "samples": 200,
+      "avg_proof_bytes": 571.72,
+      "max_proof_bytes": 649,
+      "avg_siblings": 13.585,
+      "avg_verify_us": 27.815,
+      "non_inclusion_avg_proof_bytes": 491.6,
+      "non_inclusion_avg_verify_us": 28.42,
+      "non_inclusion_samples": 50
+    },
+    {
+      "domains": 100000,
+      "samples": 200,
+      "avg_proof_bytes": 676.68,
+      "max_proof_bytes": 777,
+      "avg_siblings": 16.865,
+      "avg_verify_us": 28.015,
+      "non_inclusion_avg_proof_bytes": 604.88,
+      "non_inclusion_avg_verify_us": 28.04,
+      "non_inclusion_samples": 50
+    }
+  ]
+}

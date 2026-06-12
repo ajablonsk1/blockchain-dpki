@@ -1,0 +1,39 @@
+=== RUN   TestSTRIDE_Spoofing_WrongSignerRejected
+--- PASS: TestSTRIDE_Spoofing_WrongSignerRejected (0.00s)
+=== RUN   TestSTRIDE_Spoofing_CertKeyMismatchRejected
+--- PASS: TestSTRIDE_Spoofing_CertKeyMismatchRejected (0.00s)
+=== RUN   TestSTRIDE_Tampering_PayloadMutationDetected
+--- PASS: TestSTRIDE_Tampering_PayloadMutationDetected (0.00s)
+=== RUN   TestSTRIDE_DoS_GarbageRejectedCheaply
+--- PASS: TestSTRIDE_DoS_GarbageRejectedCheaply (0.00s)
+=== RUN   TestSTRIDE_EoP_ReplayRejected
+--- PASS: TestSTRIDE_EoP_ReplayRejected (0.00s)
+=== RUN   TestSTRIDE_EoP_DomainHijackRejected
+--- PASS: TestSTRIDE_EoP_DomainHijackRejected (0.00s)
+=== RUN   TestSTRIDE_CrossChainReplayRejected
+--- PASS: TestSTRIDE_CrossChainReplayRejected (0.00s)
+=== RUN   TestSTRIDE_Spoofing_ForgedSignatureRejected
+--- PASS: TestSTRIDE_Spoofing_ForgedSignatureRejected (0.00s)
+=== RUN   TestSTRIDE_Spoofing_MissingSignatureRejected
+--- PASS: TestSTRIDE_Spoofing_MissingSignatureRejected (0.00s)
+=== RUN   TestSTRIDE_Spoofing_CrossDomainSwapRejected
+--- PASS: TestSTRIDE_Spoofing_CrossDomainSwapRejected (0.00s)
+=== RUN   TestSTRIDE_Tampering_DirectStateEditDetected
+--- PASS: TestSTRIDE_Tampering_DirectStateEditDetected (0.00s)
+=== RUN   TestSTRIDE_DoS_SpamDoesNotBlockLegitTraffic
+    stride_test.go:165: rejected 10000 garbage txs (1 KiB each) in 32ms (3.2 µs/tx)
+--- PASS: TestSTRIDE_DoS_SpamDoesNotBlockLegitTraffic (0.03s)
+=== RUN   TestSTRIDE_DoS_OversizedDomainRejected
+--- PASS: TestSTRIDE_DoS_OversizedDomainRejected (0.00s)
+=== RUN   TestSTRIDE_DoS_OversizedReasonRejected
+--- PASS: TestSTRIDE_DoS_OversizedReasonRejected (0.00s)
+=== RUN   TestSTRIDE_EoP_UnauthorizedRotateRejected
+--- PASS: TestSTRIDE_EoP_UnauthorizedRotateRejected (0.00s)
+=== RUN   TestSTRIDE_EoP_RevocationIsPermanent
+--- PASS: TestSTRIDE_EoP_RevocationIsPermanent (0.00s)
+=== RUN   TestSTRIDE_EoP_NonceGapRejected
+--- PASS: TestSTRIDE_EoP_NonceGapRejected (0.00s)
+=== RUN   TestFrontRunning_AppLevel
+--- PASS: TestFrontRunning_AppLevel (0.00s)
+PASS
+ok  	github.com/ajablonsk1/blockchain-dpki/internal/app	0.465s

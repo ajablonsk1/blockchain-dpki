@@ -56,3 +56,17 @@ func (m *MemoryStore) Len() int {
 	defer m.mu.RUnlock()
 	return len(m.data)
 }
+
+// SizeBytes reports the total volume of stored keys and values. Like Len it is
+// a diagnostics helper (used by cmd/benchmark to track state growth), not part
+// of the KVStore interface.
+func (m *MemoryStore) SizeBytes() int64 {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	var total int64
+	for k, v := range m.data {
+		total += int64(len(k) + len(v))
+	}
+	return total
+}

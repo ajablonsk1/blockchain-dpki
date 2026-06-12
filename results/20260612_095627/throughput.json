@@ -1,0 +1,106 @@
+{
+  "suite": "throughput",
+  "timestamp": "2026-06-12T08:01:58Z",
+  "node": "http://localhost:26657",
+  "env": {
+    "go_version": "go1.26.3",
+    "goos": "darwin",
+    "goarch": "arm64",
+    "num_cpu": 12,
+    "cpu_model": "Apple M2 Max",
+    "cometbft_version": "v0.38.23"
+  },
+  "throughput": [
+    {
+      "target_tps": 25,
+      "send_seconds": 15.000548334,
+      "sent": 375,
+      "accepted_checktx": 375,
+      "rejected_checktx": 0,
+      "committed": 375,
+      "blocks_with_txs": 12,
+      "avg_block_txs": 31.25,
+      "max_block_txs": 37,
+      "actual_tps": 25.87484400056552,
+      "drain_seconds": 1.001495041
+    },
+    {
+      "target_tps": 50,
+      "send_seconds": 15.000631791,
+      "sent": 750,
+      "accepted_checktx": 750,
+      "rejected_checktx": 0,
+      "committed": 750,
+      "blocks_with_txs": 12,
+      "avg_block_txs": 62.5,
+      "max_block_txs": 70,
+      "actual_tps": 51.49793060715648,
+      "drain_seconds": 1.001950833
+    },
+    {
+      "target_tps": 100,
+      "send_seconds": 15.000403,
+      "sent": 1500,
+      "accepted_checktx": 1500,
+      "rejected_checktx": 0,
+      "committed": 1500,
+      "blocks_with_txs": 12,
+      "avg_block_txs": 125,
+      "max_block_txs": 140,
+      "actual_tps": 104.14217879045941,
+      "drain_seconds": 1.001868167
+    },
+    {
+      "target_tps": 200,
+      "send_seconds": 15.000945375,
+      "sent": 2999,
+      "accepted_checktx": 2999,
+      "rejected_checktx": 0,
+      "committed": 2999,
+      "blocks_with_txs": 13,
+      "avg_block_txs": 230.69230769230768,
+      "max_block_txs": 298,
+      "actual_tps": 188.8905999685707,
+      "drain_seconds": 2.001960291
+    },
+    {
+      "target_tps": 400,
+      "send_seconds": 15.000363041,
+      "sent": 5987,
+      "accepted_checktx": 5987,
+      "rejected_checktx": 0,
+      "committed": 5987,
+      "blocks_with_txs": 13,
+      "avg_block_txs": 460.53846153846155,
+      "max_block_txs": 568,
+      "actual_tps": 385.57780576281357,
+      "drain_seconds": 2.002981458
+    },
+    {
+      "target_tps": 800,
+      "send_seconds": 15.000266833,
+      "sent": 11879,
+      "accepted_checktx": 11879,
+      "rejected_checktx": 0,
+      "committed": 11879,
+      "blocks_with_txs": 13,
+      "avg_block_txs": 913.7692307692307,
+      "max_block_txs": 1195,
+      "actual_tps": 758.0331798888865,
+      "drain_seconds": 2.003942791
+    },
+    {
+      "target_tps": 1600,
+      "send_seconds": 15.000324542,
+      "sent": 23417,
+      "accepted_checktx": 23417,
+      "rejected_checktx": 0,
+      "committed": 23417,
+      "blocks_with_txs": 12,
+      "avg_block_txs": 1951.4166666666667,
+      "max_block_txs": 4003,
+      "actual_tps": 1588.2885138260185,
+      "drain_seconds": 2.006256167
+    }
+  ]
+}

@@ -80,6 +80,41 @@ func (c *Client) BroadcastTxCommit(ctx context.Context, tx *types.Transaction) (
 	return res, nil
 }
 
+// BroadcastTxSync submits a signed transaction and returns right after CheckTx,
+// without waiting for a block. Load generators (cmd/benchmark) use it to keep
+// many transactions in flight.
+func (c *Client) BroadcastTxSync(ctx context.Context, tx *types.Transaction) (*ctypes.ResultBroadcastTx, error) {
+	raw, err := proto.MarshalOptions{Deterministic: true}.Marshal(tx)
+	if err != nil {
+		return nil, fmt.Errorf("marshal transaction: %w", err)
+	}
+	res, err := c.rpc.BroadcastTxSync(ctx, raw)
+	if err != nil {
+		return nil, c.connErr("broadcast_tx_sync", err)
+	}
+	return res, nil
+}
+
+// UnconfirmedTxCount returns the number of transactions waiting in the node's
+// mempool.
+func (c *Client) UnconfirmedTxCount(ctx context.Context) (int, error) {
+	res, err := c.rpc.NumUnconfirmedTxs(ctx)
+	if err != nil {
+		return 0, c.connErr("num_unconfirmed_txs", err)
+	}
+	return res.Total, nil
+}
+
+// BlockTxStats returns how many transactions the block at height carries and
+// the block's timestamp.
+func (c *Client) BlockTxStats(ctx context.Context, height int64) (txs int, blockTime time.Time, err error) {
+	res, err := c.rpc.Block(ctx, &height)
+	if err != nil {
+		return 0, time.Time{}, c.connErr("block", err)
+	}
+	return len(res.Block.Txs), res.Block.Time, nil
+}
+
 // BroadcastError converts non-zero CheckTx/ExecTx codes into a readable error,
 // or nil if the transaction was accepted and executed.
 func BroadcastError(res *ctypes.ResultBroadcastTxCommit) error {

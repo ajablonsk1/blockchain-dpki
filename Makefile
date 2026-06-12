@@ -19,6 +19,7 @@ build:
 	@mkdir -p $(BINARY_DIR)
 	go build -o $(DPKID) ./cmd/dpkid
 	go build -o $(DPKI_CLI) ./cmd/dpki-cli
+	go build -o $(BINARY_DIR)/benchmark ./cmd/benchmark
 
 run-dpkid:
 	@mkdir -p $(BINARY_DIR)

@@ -42,7 +42,7 @@ signed with the CURRENT (old) private key — only the present owner may rotate.
 				return fmt.Errorf("domain %s is not registered", domain)
 			}
 			if ds.Revoked {
-				return fmt.Errorf("domain %s is revoked; register it again instead of rotating", domain)
+				return fmt.Errorf("domain %s is revoked; a revoked binding is permanent and cannot be rotated", domain)
 			}
 			nonce := ds.Nonce + 1
 			o.vlogf(cmd, "current nonce %d, sending rotate with nonce %d", ds.Nonce, nonce)

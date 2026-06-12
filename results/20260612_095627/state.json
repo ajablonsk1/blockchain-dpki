@@ -1,0 +1,94 @@
+{
+  "suite": "state",
+  "timestamp": "2026-06-12T08:00:23Z",
+  "env": {
+    "go_version": "go1.26.3",
+    "goos": "darwin",
+    "goarch": "arm64",
+    "num_cpu": 12,
+    "cpu_model": "Apple M2 Max",
+    "cometbft_version": "v0.38.23"
+  },
+  "state": [
+    {
+      "domains": 10000,
+      "store_keys": 2448153,
+      "store_bytes": 164386251,
+      "bytes_per_domain": 16438.6251,
+      "avg_insert_us": 162.1733,
+      "heap_alloc_mb": 381.3598861694336
+    },
+    {
+      "domains": 20000,
+      "store_keys": 4876380,
+      "store_bytes": 327437460,
+      "bytes_per_domain": 16371.873,
+      "avg_insert_us": 193.3175,
+      "heap_alloc_mb": 759.1618423461914
+    },
+    {
+      "domains": 30000,
+      "store_keys": 7297223,
+      "store_bytes": 489993941,
+      "bytes_per_domain": 16333.131366666667,
+      "avg_insert_us": 204.9729,
+      "heap_alloc_mb": 1106.565773010254
+    },
+    {
+      "domains": 40000,
+      "store_keys": 9712893,
+      "store_bytes": 652203831,
+      "bytes_per_domain": 16305.095775,
+      "avg_insert_us": 188.3494,
+      "heap_alloc_mb": 1513.3866958618164
+    },
+    {
+      "domains": 50000,
+      "store_keys": 12124954,
+      "store_bytes": 814171918,
+      "bytes_per_domain": 16283.43836,
+      "avg_insert_us": 173.3899,
+      "heap_alloc_mb": 1697.8398895263672
+    },
+    {
+      "domains": 60000,
+      "store_keys": 14534028,
+      "store_bytes": 975939876,
+      "bytes_per_domain": 16265.6646,
+      "avg_insert_us": 242.8153,
+      "heap_alloc_mb": 2168.0628204345703
+    },
+    {
+      "domains": 70000,
+      "store_keys": 16940471,
+      "store_bytes": 1137531557,
+      "bytes_per_domain": 16250.450814285714,
+      "avg_insert_us": 244.1379,
+      "heap_alloc_mb": 2834.775390625
+    },
+    {
+      "domains": 80000,
+      "store_keys": 19344966,
+      "store_bytes": 1298992722,
+      "bytes_per_domain": 16237.409025,
+      "avg_insert_us": 193.7479,
+      "heap_alloc_mb": 3018.64599609375
+    },
+    {
+      "domains": 90000,
+      "store_keys": 21748075,
+      "store_bytes": 1460361025,
+      "bytes_per_domain": 16226.23361111111,
+      "avg_insert_us": 176.9382,
+      "heap_alloc_mb": 3202.4464263916016
+    },
+    {
+      "domains": 100000,
+      "store_keys": 24149409,
+      "store_bytes": 1621610403,
+      "bytes_per_domain": 16216.10403,
+      "avg_insert_us": 182.727,
+      "heap_alloc_mb": 3386.111801147461
+    }
+  ]
+}
