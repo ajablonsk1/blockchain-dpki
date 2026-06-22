@@ -14,6 +14,36 @@
 \addbibresource{bibliography.bib}
 \graphicspath{{figures/}{logos/}}
 
+% Konfiguracja listingów kodu
+\definecolor{lstkeyword}{rgb}{0.0,0.0,0.6}
+\definecolor{lstcomment}{rgb}{0.35,0.45,0.35}
+\definecolor{lststring}{rgb}{0.55,0.10,0.10}
+\definecolor{lstbg}{rgb}{0.97,0.97,0.97}
+\lstset{
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{lstkeyword}\bfseries,
+    commentstyle=\color{lstcomment}\itshape,
+    stringstyle=\color{lststring},
+    backgroundcolor=\color{lstbg},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    numbersep=8pt,
+    frame=single,
+    rulecolor=\color{gray!40},
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=4,
+    captionpos=b,
+    literate={ą}{{\k{a}}}1 {ę}{{\k{e}}}1 {ó}{{\'o}}1 {ł}{{\l{}}}1
+             {ż}{{\.z}}1 {ź}{{\'z}}1 {ć}{{\'c}}1 {ś}{{\'s}}1 {ń}{{\'n}}1
+}
+\lstdefinelanguage{protobuf}{
+    keywords={message,enum,oneof,repeated,optional,reserved,syntax,package,option,import,string,bytes,bool,int64,uint64,int32,uint32},
+    morecomment=[l]{//},
+    morestring=[b]",
+    sensitive=true,
+}
+
 \title{Blockchain jako zdecentralizowana infrastruktura klucza publicznego}
 \author{Twoje Imię Nazwisko}
 
