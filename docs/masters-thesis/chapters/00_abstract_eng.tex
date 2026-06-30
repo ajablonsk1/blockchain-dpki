@@ -4,12 +4,11 @@
 
 \selectlanguage{english}
 
-% English version of the abstract (200-300 words):
-% - context and problem
-% - aim of the work
-% - methods/technologies used
-% - obtained results
-% - conclusions
+Public key infrastructure (PKI) in its current form, based on the X.509 standard and a hierarchy of certificate authorities (CAs), suffers from a structural weakness: any one of the hundreds of trusted authorities can issue a valid certificate for any domain, so the security of the whole system is bounded by its weakest link, while revocation mechanisms (CRL, OCSP) remain centralized and unreliable. This thesis addresses the question of to what extent a decentralized public key infrastructure (DPKI) based on blockchain technology can eliminate this weakness in the context of Web PKI.
+
+The aim of the work was to design, implement, and analyse the security of a DPKI system as an alternative to the centralized model. The proposed system is a registry of bindings between a domain name and a public key, maintained by a network of validators running Byzantine fault-tolerant (BFT) consensus. The prototype was implemented in Go as an ABCI application on top of the existing CometBFT consensus engine; the registry state is stored in a Sparse Merkle Tree, enabling compact proofs of both inclusion and non-inclusion of bindings, and control over a domain is verified using a DNS-01 challenge. The security analysis was conducted with the STRIDE methodology, and performance properties were measured on a running multi-node network.
+
+The results confirmed the stated theses: the system eliminates the single point of trust -- compromising a minority of validators does not violate registry integrity -- propagates revocations within about one second, deterministically and with a cryptographic proof, while proof size grows only logarithmically with the number of domains. The limitations of the approach were also demonstrated, including the dependence on DNS security at registration time and the cost of state replication.
 
 \vspace{1em}
 \noindent\textbf{Keywords:} blockchain, public key infrastructure, PKI, DPKI, asymmetric cryptography, distributed ledger, CometBFT, distributed systems security

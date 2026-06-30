@@ -2,12 +2,11 @@
 \chapter*{Streszczenie}
 \addcontentsline{toc}{chapter}{Streszczenie}
 
-% Tu wstaw streszczenie pracy w języku polskim (zwykle 200-300 słów):
-% - kontekst i problem
-% - cel pracy
-% - zastosowane metody/technologie
-% - uzyskane wyniki
-% - wnioski
+Infrastruktura klucza publicznego (PKI) w obecnym kształcie, opartym na standardzie X.509 i hierarchii urzędów certyfikacji (CA), cierpi na strukturalną słabość: każdy z setek zaufanych urzędów może wystawić ważny certyfikat dla dowolnej domeny, przez co bezpieczeństwo całego systemu wyznacza najsłabsze ogniwo, a mechanizmy unieważniania (CRL, OCSP) pozostają scentralizowane i zawodne. Niniejsza praca podejmuje problem, w jakim stopniu zdecentralizowana infrastruktura klucza publicznego (DPKI) oparta na technologii blockchain może wyeliminować tę słabość w kontekście Web PKI.
+
+Celem pracy było zaprojektowanie, implementacja oraz analiza bezpieczeństwa systemu DPKI stanowiącego alternatywę dla modelu scentralizowanego. Zaprojektowany system jest rejestrem wiązań nazwy domeny z kluczem publicznym, utrzymywanym przez sieć walidatorów z konsensusem bizantyjskim (BFT). Prototyp zaimplementowano w języku Go jako aplikację interfejsu ABCI nad gotowym silnikiem konsensusu CometBFT; stan rejestru przechowywany jest w rzadkim drzewie Merkle, umożliwiającym zwięzłe dowody istnienia i nieistnienia wiązań, a kontrolę nad domeną weryfikuje się metodą wyzwania DNS-01. Analizę bezpieczeństwa przeprowadzono metodą STRIDE, a właściwości wydajnościowe zmierzono na uruchomionej sieci wielowęzłowej.
+
+Wyniki potwierdziły postawione tezy: system eliminuje pojedynczy punkt zaufania -- kompromitacja mniejszości walidatorów nie narusza integralności rejestru -- propaguje unieważnienia w czasie rzędu jednej sekundy, deterministycznie i z dowodem kryptograficznym, a rozmiar dowodu rośnie jedynie logarytmicznie z liczbą domen. Wykazano zarazem ograniczenia podejścia, w tym zależność od bezpieczeństwa DNS w chwili rejestracji oraz koszt replikacji stanu.
 
 \vspace{1em}
 \noindent\textbf{Słowa kluczowe:} blockchain, infrastruktura klucza publicznego, PKI, DPKI, kryptografia asymetryczna, rozproszony rejestr, CometBFT, bezpieczeństwo systemów rozproszonych
