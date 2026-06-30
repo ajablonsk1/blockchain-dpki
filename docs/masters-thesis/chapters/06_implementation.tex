@@ -5,7 +5,7 @@
 \section{Środowisko i narzędzia}
 \label{sec:srodowisko}
 
-Prototyp zaimplementowano w języku Go w wersji 1.25, wybranym z przyczyn omówionych w sekcji~\ref{sec:wybor-technologii}. Wykorzystano następujące podstawowe komponenty i narzędzia:
+Prototyp zaimplementowano w języku Go (minimalna wersja języka zadeklarowana w pliku \texttt{go.mod} to 1.25), wybranym z przyczyn omówionych w sekcji~\ref{sec:wybor-technologii}. Wykorzystano następujące podstawowe komponenty i narzędzia:
 
 \begin{itemize}
     \item \textbf{CometBFT} w wersji 0.38 (ABCI 2.0) -- silnik konsensusu, dołączony jako zależność biblioteczna; aplikacja osadza go w procesie węzła i komunikuje się z nim lokalnie przez interfejs ABCI;
