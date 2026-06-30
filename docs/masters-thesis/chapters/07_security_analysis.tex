@@ -2,8 +2,6 @@
 \chapter{Analiza bezpieczeństwa}
 \label{ch:analiza-bezpieczenstwa}
 
-Niniejszy rozdział stanowi analityczny rdzeń pracy. Jego celem jest systematyczna ocena bezpieczeństwa zaprojektowanego i zaimplementowanego systemu (rozdziały~\ref{ch:projekt}--\ref{ch:implementacja}) w odniesieniu do typowych wektorów ataku na infrastrukturę klucza publicznego oraz wektorów charakterystycznych dla rozproszonej warstwy konsensusu. Analizę oparto na metodyce modelowania zagrożeń STRIDE \cite{howard2003secure,shostack2014threat}, a jej wyróżnikiem jest osadzenie rozważań w danych empirycznych: dla każdego rozważanego ataku, o ile był wykonalny, przeprowadzono test demonstrujący zachowanie systemu. Łącznie zrealizowano osiemnaście testów bezpieczeństwa na poziomie aplikacji oraz trzy scenariusze sieciowe na uruchomionej sieci wielowęzłowej; wszystkie potwierdziły przewidywane zachowanie obronne. Na wstępie należy jednak poczynić zastrzeżenie metodyczne: test bezpieczeństwa dowodzi, że \emph{konkretny} atak nie działa, a nie że system jest bezpieczny w sensie absolutnym. Wyniki testów stanowią zatem dowody odporności na wskazane zagrożenia, nie zaś dowód bezpieczeństwa systemu jako całości.
-
 \section{Model zagrożeń}
 \label{sec:model-zagrozen}
 
@@ -37,7 +35,7 @@ Analiza koncentruje się na ochronie czterech aktywów, których naruszenie podw
 \section{Klasyfikacja zagrożeń (STRIDE)}
 \label{sec:stride}
 
-Zagrożenia sklasyfikowano metodą STRIDE \cite{howard2003secure}, rozpatrując sześć kategorii -- podszycie (\emph{Spoofing}), manipulację danymi (\emph{Tampering}), zaprzeczalność (\emph{Repudiation}), ujawnienie informacji (\emph{Information disclosure}), odmowę usługi (\emph{Denial of service}) oraz podniesienie uprawnień (\emph{Elevation of privilege}) -- w odniesieniu do każdego z głównych komponentów systemu. Wynik klasyfikacji przedstawia tabela~\ref{tab:stride}.
+Zagrożenia sklasyfikowano metodą STRIDE \cite{howard2003secure,shostack2014threat}, rozpatrując sześć kategorii -- podszycie (\emph{Spoofing}), manipulację danymi (\emph{Tampering}), zaprzeczalność (\emph{Repudiation}), ujawnienie informacji (\emph{Information disclosure}), odmowę usługi (\emph{Denial of service}) oraz podniesienie uprawnień (\emph{Elevation of privilege}) -- w odniesieniu do każdego z głównych komponentów systemu. Wynik klasyfikacji przedstawia tabela~\ref{tab:stride}.
 
 \begin{table}[htbp]
     \centering
@@ -45,14 +43,14 @@ Zagrożenia sklasyfikowano metodą STRIDE \cite{howard2003secure}, rozpatrując 
     \label{tab:stride}
     \begin{tabular}{l c c c c c c}
         \hline
-        \textbf{Komponent} & \textbf{S} & \textbf{T} & \textbf{R} & \textbf{I} & \textbf{D} & \textbf{E} \\
+        \textbf{Komponent}               & \textbf{S} & \textbf{T} & \textbf{R} & \textbf{I} & \textbf{D} & \textbf{E} \\
         \hline
-        Transakcja rejestracji      & \checkmark & \checkmark & --         & --         & \checkmark & \checkmark \\
-        Transakcja rotacji/unieważnienia & \checkmark & \checkmark & --    & --         & \checkmark & \checkmark \\
-        Stan (drzewo Merkle)        & --         & \checkmark & --         & --         & --         & --         \\
-        Konsensus                   & \checkmark & \checkmark & --         & --         & \checkmark & \checkmark \\
-        Weryfikacja domeny (DNS-01) & \checkmark & \checkmark & --         & --         & \checkmark & --         \\
-        Zapytania i dowody          & --         & \checkmark & --         & --         & \checkmark & --         \\
+        Transakcja rejestracji           & \checkmark & \checkmark & --         & --         & \checkmark & \checkmark \\
+        Transakcja rotacji/unieważnienia & \checkmark & \checkmark & --         & --         & \checkmark & \checkmark \\
+        Stan (drzewo Merkle)             & --         & \checkmark & --         & --         & --         & --         \\
+        Konsensus                        & \checkmark & \checkmark & --         & --         & \checkmark & \checkmark \\
+        Weryfikacja domeny (DNS-01)      & \checkmark & \checkmark & --         & --         & \checkmark & --         \\
+        Zapytania i dowody               & --         & \checkmark & --         & --         & \checkmark & --         \\
         \hline
     \end{tabular}
 \end{table}
@@ -121,15 +119,15 @@ Zestawienie właściwości bezpieczeństwa zaproponowanego systemu z klasyczną 
     \label{tab:porownanie-bezp}
     \begin{tabular}{p{0.26\textwidth} p{0.34\textwidth} p{0.34\textwidth}}
         \hline
-        \textbf{Właściwość} & \textbf{Klasyczna PKI (X.509 + CA)} & \textbf{DPKI (ta praca)} \\
+        \textbf{Właściwość}                  & \textbf{Klasyczna PKI (X.509 + CA)}                 & \textbf{DPKI (ta praca)}                                           \\
         \hline
-        Punkt zaufania & pojedyncze CA -- każde z setek w magazynie zaufania & ponad dwie trzecie mocy głosów walidatorów \\
+        Punkt zaufania                       & pojedyncze CA -- każde z setek w magazynie zaufania & ponad dwie trzecie mocy głosów walidatorów                         \\
         Skutek kompromitacji punktu zaufania & fałszywy certyfikat dla dowolnej domeny (DigiNotar) & poniżej $1/3$: brak skutku; do $2/3$: wstrzymanie, nie fałszerstwo \\
-        Unieważnienie & CRL/OCSP -- opóźnione, w praktyce \emph{soft-fail} & następny blok, trwałe, dowodliwe \\
-        Dowód statusu & łańcuch certyfikatów oraz odpowiedź OCSP & dowód Merkle względem skrótu stanu, weryfikowalny offline \\
-        Dowód nieistnienia & brak & dowód nieobecności \\
-        Transparentność & Certificate Transparency jako opcjonalny dodatek & wbudowana: rejestr jest dziennikiem \\
-        Wykrywalność nadużycia & monitoring logów CT, po fakcie & nadużycie nie zostaje zatwierdzone (prewencja) \\
+        Unieważnienie                        & CRL/OCSP -- opóźnione, w praktyce \emph{soft-fail}  & następny blok, trwałe, dowodliwe                                   \\
+        Dowód statusu                        & łańcuch certyfikatów oraz odpowiedź OCSP            & dowód Merkle względem skrótu stanu, weryfikowalny offline          \\
+        Dowód nieistnienia                   & brak                                                & dowód nieobecności                                                 \\
+        Transparentność                      & Certificate Transparency jako opcjonalny dodatek    & wbudowana: rejestr jest dziennikiem                                \\
+        Wykrywalność nadużycia               & monitoring logów CT, po fakcie                      & nadużycie nie zostaje zatwierdzone (prewencja)                     \\
         \hline
     \end{tabular}
 \end{table}

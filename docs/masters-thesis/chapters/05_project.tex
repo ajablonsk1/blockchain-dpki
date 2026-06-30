@@ -2,8 +2,6 @@
 \chapter{Projekt systemu}
 \label{ch:projekt}
 
-Rozdział czwarty zamknął się sformułowaniem luki badawczej: brakuje systemu łączącego deterministyczną finalność konsensusu, weryfikację kontroli nad istniejącym identyfikatorem DNS w chwili rejestracji oraz dowodliwe odpowiedzi o stan, weryfikowalne przez lekkiego klienta. Niniejszy rozdział przedstawia projekt systemu zaprojektowanego tak, by tę lukę wypełnić. Wychodząc od wymagań i przyjętego modelu adwersarza, opisano architekturę wysokopoziomową, model danych, protokoły operacji na certyfikatach, mechanizm weryfikacji własności domeny oraz interfejs zewnętrzny. Decyzje projektowe przedstawiono wraz z uzasadnieniem; ich odwzorowanie na konkretne rozwiązania programistyczne jest przedmiotem rozdziału~\ref{ch:implementacja}.
-
 \section{Założenia i wymagania funkcjonalne}
 \label{sec:wymagania-funkcjonalne}
 
@@ -200,7 +198,7 @@ Rejestr gwarantuje niezmienność i niefałszowalność wpisów, lecz sam w sobi
 Wartość wyzwania jest wyznaczana deterministycznie z danych publicznych, jako skrót, zakodowany szesnastkowo:
 
 \begin{center}
-\texttt{wyzwanie = SHA-256(domena || 0x00 || klucz\_publiczny || 0x00 || id\_łańcucha)}
+    \texttt{wyzwanie = SHA-256(domena || 0x00 || klucz\_publiczny || 0x00 || id\_łańcucha)}
 \end{center}
 
 \noindent gdzie symbol \texttt{||} oznacza konkatenację, a \texttt{0x00} -- bajt zerowy. Separatory zerowe zapewniają rozdzielność dziedzin, uniemożliwiając kolizje konkatenacji. Determinizm wartości jest konieczny, by zarówno klient (instruując właściciela), jak i każdy walidator (sprawdzając) wyznaczali ją identycznie, bez współdzielonego sekretu. Kluczowe jest związanie wartości z kluczem publicznym: zapewnia ono odporność na atak typu \emph{front-running}. Adwersarz A1, który obserwuje oczekującą transakcję rejestracji i kopiuje opublikowaną wartość wyzwania, próbując zarejestrować domenę na własny klucz, wyznacza inną wartość oczekiwaną (zależną od \emph{jego} klucza), więc opublikowany przez prawdziwego właściciela rekord nie pasuje. Związanie z identyfikatorem łańcucha uniemożliwia z kolei ponowne użycie wyzwania na innym łańcuchu.

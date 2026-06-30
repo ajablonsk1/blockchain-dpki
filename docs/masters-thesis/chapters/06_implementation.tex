@@ -2,8 +2,6 @@
 \chapter{Implementacja}
 \label{ch:implementacja}
 
-Rozdział przedstawia realizację projektu opisanego w rozdziale~\ref{ch:projekt} w postaci działającego prototypu. Omówiono środowisko i narzędzia, organizację kodu, a następnie kolejno trzy warstwy systemu (sekcja~\ref{sec:architektura}): aplikację ABCI zawierającą logikę rejestru, klienta wraz z interfejsem wiersza poleceń oraz konfigurację sieci wielowęzłowej. Rozdział zamyka omówienie strategii testowania. Celem jest pokazanie, w jaki sposób decyzje projektowe -- w szczególności podział walidacji na etap przedkonsensusowy i deterministyczny oraz oparcie stanu na drzewie Merkle -- przekładają się na konkretny kod, a nie wyczerpujące przytoczenie jego treści; pełna implementacja dostępna jest w repozytorium projektu.
-
 \section{Środowisko i narzędzia}
 \label{sec:srodowisko}
 
@@ -132,13 +130,13 @@ Pokrycie kodu testami, zmierzone narzędziem \texttt{go test}, przedstawia tabel
     \label{tab:pokrycie}
     \begin{tabular}{l r}
         \hline
-        \textbf{Pakiet} & \textbf{Pokrycie} \\
+        \textbf{Pakiet}                & \textbf{Pokrycie} \\
         \hline
-        \texttt{internal/verifier} & 100,0\% \\
-        \texttt{internal/crypto} & 92,3\% \\
-        \texttt{internal/state} & 89,1\% \\
-        \texttt{internal/app} & 86,7\% \\
-        \texttt{cmd/dpki-cli/commands} & 80,6\% \\
+        \texttt{internal/verifier}     & 100,0\%           \\
+        \texttt{internal/crypto}       & 92,3\%            \\
+        \texttt{internal/state}        & 89,1\%            \\
+        \texttt{internal/app}          & 86,7\%            \\
+        \texttt{cmd/dpki-cli/commands} & 80,6\%            \\
         \hline
     \end{tabular}
 \end{table}
