@@ -5,8 +5,7 @@
 \section{Założenia i wymagania funkcjonalne}
 \label{sec:wymagania-funkcjonalne}
 
-Projektowany system jest zdecentralizowanym rejestrem wiązań pomiędzy nazwą domeny a kluczem publicznym, pełniącym dla Web PKI rolę, którą w modelu klasycznym pełnią łącznie urzędy certyfikacji, repozytoria certyfikatów oraz infrastruktura unieważnień. Przyjęto następujące założenia ogólne, wynikające z analizy przeprowadzonej w rozdziałach~\ref{ch:pki-klasyczna}--\ref{ch:dpki}:
-
+Projektowany system jest zdecentralizowanym rejestrem wiązań pomiędzy nazwą domeny a kluczem publicznym, odgrywającym dla Web PKI rolę, którą w modelu klasycznym pełnią łącznie urzędy certyfikacji, repozytoria certyfikatów oraz infrastruktura unieważnień. Przyjęto następujące założenia ogólne, wynikające z analizy przeprowadzonej w rozdziałach~\ref{ch:pki-klasyczna}--\ref{ch:dpki}:
 \begin{itemize}
     \item rejestr jest utrzymywany przez konsorcjum znanych walidatorów w modelu \emph{permissioned}, z konsensusem BFT zapewniającym deterministyczne, nieodwracalne zatwierdzanie bloków (sekcja~\ref{subsec:bft-tendermint});
     \item jedynym podmiotem uprawnionym do zmiany stanu swojej domeny jest posiadacz odpowiadającego jej klucza prywatnego;
@@ -14,16 +13,14 @@ Projektowany system jest zdecentralizowanym rejestrem wiązań pomiędzy nazwą 
     \item identyfikatorem jest nazwa domeny z istniejącej przestrzeni nazw DNS, a rejestracja wymaga udowodnienia kontroli nad tą nazwą.
 \end{itemize}
 
-Na tej podstawie zdefiniowano wymagania funkcjonalne, ujęte jako operacje, które system musi udostępniać. Rozdzielono je według aktora - właściciela domeny wykonującego operacje zapisu oraz strony ufającej (np.\ klienta TLS) wykonującej operacje odczytu.
-
-Operacje właściciela domeny:
+Na tej podstawie zdefiniowano wymagania funkcjonalne, ujęte jako operacje, które system musi udostępniać. Rozdzielono je według aktora, na operacje właściciela domeny oraz operacje strony ufającej, na przykład klienta TLS. Właściciel domeny dysponuje trzema operacjami zapisu:
 \begin{itemize}
     \item \textbf{rejestracja} (\emph{register}) - utworzenie nowego wiązania domeny z kluczem publicznym, dopuszczalne wyłącznie po udowodnieniu kontroli nad domeną i tylko gdy domena nie jest jeszcze zarejestrowana;
     \item \textbf{rotacja klucza} (\emph{rotate}) - zastąpienie bieżącego klucza domeny nowym, autoryzowane podpisem złożonym kluczem dotychczasowym;
     \item \textbf{unieważnienie} (\emph{revoke}) - trwałe odwołanie wiązania, autoryzowane podpisem bieżącego klucza, stosowane w szczególności po kompromitacji klucza prywatnego.
 \end{itemize}
 
-Operacje strony ufającej:
+Strona ufająca dysponuje trzema operacjami odczytu:
 \begin{itemize}
     \item \textbf{odczyt stanu} (\emph{lookup}) - pobranie bieżącego wiązania dla danej domeny wraz z informacją o jego ważności i ewentualnym unieważnieniu;
     \item \textbf{pobranie dowodu} (\emph{proof}) - uzyskanie dowodu Merkle, który pozwala zweryfikować poprawność odpowiedzi względem korzenia zaufania, w tym dowieść, że domena \emph{nie} jest zarejestrowana;
@@ -34,7 +31,6 @@ Operacje strony ufającej:
 \label{sec:wymagania-niefunkcjonalne}
 
 Wymagania niefunkcjonalne wynikają wprost z roli systemu jako warstwy zaufania o zasięgu globalnym:
-
 \begin{itemize}
     \item \textbf{determinizm} - przetwarzanie transakcji włączone w konsensus musi być w pełni deterministyczne; jakakolwiek rozbieżność wyniku między walidatorami rozszczepiłaby stan i uniemożliwiła osiągnięcie zgody (sekcja~\ref{sec:abci});
     \item \textbf{weryfikowalność po stronie klienta} - strona ufająca musi móc samodzielnie zweryfikować poprawność odpowiedzi (dowodem Merkle względem korzenia zaufania z nagłówka bloku), bez polegania na uczciwości pojedynczego węzła;
@@ -43,35 +39,34 @@ Wymagania niefunkcjonalne wynikają wprost z roli systemu jako warstwy zaufania 
     \item \textbf{rozdzielność warstw} - logika rejestru musi być odseparowana od mechanizmu konsensusu, tak aby możliwe było jej testowanie i analiza w izolacji oraz oparcie konsensusu na gotowej, przetestowanej implementacji.
 \end{itemize}
 
-Świadomie poza zakresem prototypu pozostawiono trwałość stanu na dysku, prywatność danych rejestru (rejestr jest jawny z założenia, podobnie jak logi Certificate Transparency) oraz mechanizmy ekonomiczne (opłaty, stawki) - ich brak nie wpływa na badane właściwości bezpieczeństwa, a ich omówienie jako kierunków rozwoju zawiera rozdział~\ref{ch:podsumowanie}.
+Poza zakresem prototypu świadomie pozostawiono trwałość stanu na dysku, prywatność danych rejestru (rejestr jest jawny z założenia, podobnie jak logi Certificate Transparency) oraz mechanizmy ekonomiczne (opłaty, stawki). Ich brak nie wpływa na badane właściwości bezpieczeństwa, a ich omówienie jako kierunków rozwoju zawiera rozdział~\ref{ch:podsumowanie}.
 
 \section{Wybór technologii}
 \label{sec:wybor-technologii}
 
-Dobór technologii podporządkowano regule wynikającej z tezy pomocniczej czwartej (sekcja~\ref{sec:tezy}): zasadnicza wartość pracy leży w warstwie aplikacyjnej rejestru, a nie w ponownej implementacji konsensusu. W konsekwencji warstwę konsensusu oparto na gotowym komponencie, koncentrując nakład pracy na logice DPKI.
+Wybór technologii podyktowany był tezą pomocniczą czwartą (sekcja~\ref{sec:tezy}): zasadnicza wartość pracy tkwi w warstwie aplikacyjnej rejestru, a nie w ponownej implementacji konsensusu. W konsekwencji warstwę konsensusu oparto na gotowym komponencie, koncentrując nakład pracy na logice DPKI.
 
 \begin{itemize}
-    \item \textbf{CometBFT} (kontynuacja Tendermint Core) jako silnik konsensusu - dostarcza konsensus BFT o finalności deterministycznej (sekcja~\ref{subsec:bft-tendermint}) oraz interfejs ABCI rozdzielający konsensus od aplikacji (sekcja~\ref{sec:abci}). To właśnie ABCI przesądziło o wyborze: pozwala zaimplementować cały system jako aplikację, bez ingerencji w protokół konsensusu, sieć P2P czy mechanizm replikacji bloków.
+    \item \textbf{CometBFT} (kontynuacja Tendermint Core) jako silnik konsensusu - zapewnia deterministyczny, nieodwracalny konsensus BFT (sekcja~\ref{subsec:bft-tendermint}) oraz interfejs ABCI rozdzielający konsensus od aplikacji (sekcja~\ref{sec:abci}). To właśnie ABCI przesądziło o wyborze: pozwala zaimplementować cały system jako aplikację, bez ingerencji w protokół konsensusu, sieć P2P czy mechanizm replikacji bloków.
     \item \textbf{Język Go} jako język implementacji - naturalny wybór dla aplikacji ABCI, ponieważ sam CometBFT jest napisany w Go i udostępnia w nim referencyjny zestaw bibliotek klienckich i serwerowych, co eliminuje narzut wynikający z komunikacji międzyjęzykowej i wiązania typów.
-    \item \textbf{Protocol Buffers} jako format serializacji danych - zwięzłe, schematyzowane kodowanie binarne o deterministycznym wariancie serializacji, kluczowym dla powtarzalności skrótów transakcji i stanu (sekcja~\ref{sec:model-danych}).
+    \item \textbf{Protocol Buffers} jako format serializacji danych - zwięzłe, schematyzowane kodowanie binarne o deterministycznym wariancie, kluczowym dla powtarzalności skrótów transakcji i stanu.
     \item \textbf{Ed25519} jako domyślny algorytm podpisu - ze względów omówionych w sekcji~\ref{sec:kryptografia-asymetryczna}: krótkie klucze i podpisy, wysoka wydajność oraz deterministyczna konstrukcja podpisu. Schemat danych pozostawia miejsce na inne algorytmy (np.\ ECDSA na krzywej P-256), lecz w prototypie zaimplementowano wyłącznie Ed25519.
-    \item \textbf{SHA-256} jako funkcja skrótu - używana zarówno do wyznaczania skrótów transakcji, jak i jako prymityw drzewa Merkle stanu (sekcja~\ref{sec:merkle}).
+    \item \textbf{SHA-256} jako funkcja skrótu - używana zarówno do wyznaczania skrótów transakcji, jak i jako prymityw kryptograficzny, na którym oparte jest drzewo Merkle (sekcja~\ref{sec:merkle}).
 \end{itemize}
 
 \section{Założenia bezpieczeństwa i model adwersarza}
 \label{sec:zalozenia-adwersarz}
 
 Projekt systemu poprzedzono zdefiniowaniem modelu adwersarza, który stanowi punkt odniesienia zarówno dla decyzji projektowych w tym rozdziale, jak i dla pełnej analizy bezpieczeństwa w rozdziale~\ref{ch:analiza-bezpieczenstwa}. Wyróżniono pięć klas adwersarzy, uporządkowanych według rosnącego zakresu zdolności:
-
 \begin{itemize}
-    \item \textbf{A1 - adwersarz zewnętrzny} - może wysyłać dowolne transakcje i zapytania oraz obserwować cały jawny stan i ruch sieciowy; nie kontroluje żadnego walidatora;
-    \item \textbf{A2 - skompromitowany walidator} - dysponuje zdolnościami A1 oraz kluczem konsensusu części walidatorów (z założenia nie więcej niż $f$, gdzie $n = 3f + 1$), a także może dowolnie modyfikować lokalny stan i odpowiedzi swojego węzła;
-    \item \textbf{A3 - adwersarz sieciowy} - kontroluje część łączy sieciowych i może na nich opóźniać, gubić lub wstrzykiwać wiadomości; pozwala mu to odciąć grupę węzłów od reszty sieci (partycja sieci) albo otoczyć pojedynczy węzeł i kontrolować całą jego komunikację (atak eclipse);
+    \item \textbf{A1 - adwersarz zewnętrzny} - może wysyłać dowolne transakcje i zapytania RPC oraz obserwować cały jawny stan i ruch sieciowy; nie kontroluje żadnego walidatora. Jest to adwersarz najsłabszy, lecz najpowszechniejszy, odpowiada bowiem dowolnemu uczestnikowi sieci publicznej;
+    \item \textbf{A2 - skompromitowany walidator} - dysponuje zdolnościami A1 oraz kluczem konsensusu części walidatorów (z założenia nie więcej niż $f$, gdzie $n = 3f + 1$), a także może dowolnie modyfikować lokalny stan i odpowiedzi RPC swoich węzłów;
+    \item \textbf{A3 - adwersarz sieciowy} - kontroluje część łączy sieciowych i może na nich opóźniać, gubić lub wstrzykiwać wiadomości; pozwala mu to odciąć grupę węzłów od reszty sieci (partycja sieci) albo otoczyć pojedynczy węzeł i kontrolować całą jego komunikację (atak Eclipse);
     \item \textbf{A4 - adwersarz z kluczem domeny} - wszedł w posiadanie klucza prywatnego właściciela domeny (kradzież, wyciek);
     \item \textbf{A5 - złośliwy operator węzła} - dysponuje zdolnościami A2 oraz pełnym dostępem do dysku i pamięci własnego węzła, z pominięciem interfejsów aplikacji.
 \end{itemize}
 
-Poza modelem pozostają adwersarz kontrolujący ponad jedną trzecią mocy głosów (czego konsensus BFT z założenia nie chroni), złamanie wykorzystywanych prymitywów kryptograficznych oraz adwersarz kontrolujący infrastrukturę DNS ofiary w trakcie rejestracji - to ostatnie ograniczenie jest wspólne z protokołem ACME i omówiono je w sekcji~\ref{sec:wlasnosc-domeny}. Aktywami podlegającymi ochronie są: integralność rejestru (niemożność związania cudzej domeny z własnym kluczem), niefałszowalność dowodów, dostępność operacji oraz spójność replik (identyczny stan rejestru na wszystkich uczciwych węzłach). Pełne odwzorowanie klas adwersarzy na konkretne wektory ataku i mechanizmy obronne, wraz z klasyfikacją STRIDE, zawiera rozdział~\ref{ch:analiza-bezpieczenstwa}.
+Granice modelu wyznaczają trzy założenia, których naruszenie leży poza zakresem ochrony. Adwersarz nie kontroluje więcej niż $f$ walidatorów; przed większością przekraczającą tę granicę konsensus BFT z założenia nie chroni (sekcja~\ref{subsec:bft-tendermint}). Wykorzystywane prymitywy kryptograficzne (Ed25519, SHA-256) pozostają bezpieczne. Adwersarz nie kontroluje wreszcie infrastruktury DNS ofiary w trakcie rejestracji. To ostatnie ograniczenie jest wspólne z protokołem ACME i omówiono je w sekcjach~\ref{sec:wlasnosc-domeny} oraz~\ref{sec:ograniczenia}. Chronione aktywa oraz pełne odwzorowanie klas adwersarzy na konkretne wektory ataku i mechanizmy obronne, wraz z klasyfikacją STRIDE, zawiera rozdział~\ref{ch:analiza-bezpieczenstwa}.
 
 \section{Architektura wysokopoziomowa}
 \label{sec:architektura}
@@ -96,8 +91,8 @@ System dzieli się na trzy warstwy, odpowiadające trzem rolom: utrzymywaniu rej
 
         \node[layer, fill=green!6, below=of client] (cons)
         {{\small\bfseries Warstwa konsensusu \textnormal{--- silnik CometBFT}}\\[3pt]
-            Sieć P2P, mempool, uzgadnianie kolejności transakcji oraz
-            replikacja bloków. Gotowy komponent, niemodyfikowany.};
+            Sieć P2P, pula transakcji oczekujących, uzgadnianie kolejności
+            transakcji oraz replikacja bloków. Gotowy komponent, niemodyfikowany.};
 
         \node[layer, fill=blue!7, below=of cons] (app)
         {{\small\bfseries Warstwa aplikacji \textnormal{--- logika DPKI (zasadniczy wkład pracy)}}\\[4pt]
@@ -116,12 +111,12 @@ System dzieli się na trzy warstwy, odpowiadające trzem rolom: utrzymywaniu rej
 \end{figure}
 
 \begin{itemize}
-    \item \textbf{Warstwa konsensusu} - silnik CometBFT, odpowiedzialny za sieć P2P, mempool, uzgadnianie kolejności transakcji oraz replikację bloków. Warstwa ta jest wykorzystywana jako gotowy komponent i nie podlega modyfikacji.
+    \item \textbf{Warstwa konsensusu} - silnik CometBFT, odpowiedzialny za sieć P2P, pulę transakcji oczekujących, uzgadnianie kolejności transakcji oraz replikację bloków. Warstwa ta jest wykorzystywana jako gotowy komponent i nie podlega modyfikacji.
     \item \textbf{Warstwa aplikacji} - właściwa logika DPKI, komunikująca się z konsensusem przez interfejs ABCI. Obejmuje walidację transakcji, przejścia stanu (rejestracja, rotacja, unieważnienie), utrzymanie stanu w drzewie Merkle oraz obsługę zapytań wraz z generowaniem dowodów. To w tej warstwie zawiera się zasadniczy wkład pracy.
     \item \textbf{Warstwa kliencka} - aplikacja używana przez właścicieli domen i strony ufające, komunikująca się z węzłami przez interfejs RPC. Buduje i podpisuje transakcje, odpytuje stan oraz weryfikuje dowody. Warstwa ta z założenia nie zawiera logiki biznesowej: wszystkie decyzje walidacyjne należą do węzła. Klient buduje i podpisuje transakcje, a otrzymane dowody weryfikuje lokalnie (rozdział~\ref{ch:implementacja}).
 \end{itemize}
 
-Całą logikę rejestru umieszczono w warstwie aplikacji ABCI. Dzięki temu jest ona deterministyczną maszyną stanów, którą można testować w izolacji od sieci i konsensusu, a jej poprawność - weryfikować niezależnie od właściwości samego CometBFT. Stanem aplikacji jest rzadkie drzewo Merkle (sekcja~\ref{sec:merkle}), którego korzeń aplikacja zwraca po wykonaniu każdego bloku jako skrót stanu (\emph{app hash}); silnik konsensusu umieszcza go w nagłówku bloku następnego, wiążąc stan po wysokości $H$ z podpisami walidatorów w nagłówku bloku $H+1$. Mechanizm ten jest fundamentem weryfikacji po stronie klienta opisanej w sekcji~\ref{sec:api}.
+Całą logikę rejestru umieszczono w warstwie aplikacji ABCI. Dzięki temu jest ona deterministyczną maszyną stanów, którą można testować w izolacji od sieci i konsensusu, a jej poprawność weryfikować niezależnie od właściwości samego CometBFT. Stanem aplikacji jest rzadkie drzewo Merkle (sekcja~\ref{sec:merkle}), którego korzeń aplikacja zwraca po wykonaniu każdego bloku jako skrót stanu (\emph{app hash}); silnik konsensusu umieszcza go w nagłówku bloku następnego, wiążąc stan po wysokości $H$ z podpisami walidatorów w nagłówku bloku $H+1$. Na tym mechanizmie opiera się weryfikacja po stronie klienta opisana w sekcji~\ref{sec:api}.
 
 \section{Model danych}
 \label{sec:model-danych}
@@ -131,8 +126,7 @@ Model danych obejmuje trzy struktury: certyfikat (wiązanie domeny z kluczem), t
 \subsection{Reprezentacja certyfikatu}
 \label{subsec:reprezentacja-cert}
 
-Certyfikat jest minimalnym wiązaniem domeny z kluczem publicznym - w odróżnieniu od certyfikatu X.509 (sekcja~\ref{sec:x509}) nie zawiera podpisu wystawcy, gdyż w projektowanym systemie autorytetem poświadczającym jest konsensus, a nie pojedynczy podmiot. Struktura \texttt{Certificate} obejmuje pola:
-
+Certyfikat jest minimalnym wiązaniem domeny z kluczem publicznym. W odróżnieniu od certyfikatu X.509 (sekcja~\ref{sec:x509}) nie zawiera podpisu wystawcy, gdyż w projektowanym systemie autorytetem poświadczającym jest konsensus, a nie pojedynczy podmiot. Struktura \texttt{Certificate} obejmuje pola:
 \begin{itemize}
     \item \texttt{domain} - nazwa domeny, której dotyczy wiązanie; podlega walidacji składniowej (maksymalnie 253 znaki, etykiety do 63 znaków);
     \item \texttt{public\_key} - klucz publiczny właściciela w postaci binarnej;
@@ -141,21 +135,19 @@ Certyfikat jest minimalnym wiązaniem domeny z kluczem publicznym - w odróżnie
     \item \texttt{version} - numer wersji wiązania, inkrementowany przy każdej rotacji klucza, pozwalający odróżnić kolejne wcielenia certyfikatu tej samej domeny.
 \end{itemize}
 
-Operację na wiązaniu reprezentuje struktura \texttt{Transaction}, której treść (pole \texttt{body}) jest wariantem jednego z trzech typów - \texttt{RegisterTx}, \texttt{RevokeTx} lub \texttt{RotateTx} - a pozostałe pola są wspólne dla wszystkich operacji:
-
+Operację na wiązaniu reprezentuje struktura \texttt{Transaction}, której treść (pole \texttt{body}) jest wariantem jednego z trzech typów (\texttt{RegisterTx}, \texttt{RevokeTx} lub \texttt{RotateTx}), a pozostałe pola są wspólne dla wszystkich operacji:
 \begin{itemize}
     \item \texttt{body} - wariantowa treść operacji: \texttt{RegisterTx} niesie pełny certyfikat; \texttt{RevokeTx} zawiera nazwę domeny, licznik (\emph{nonce}) oraz opcjonalny powód unieważnienia (do 256 znaków); \texttt{RotateTx} zawiera nazwę domeny, licznik oraz nowy klucz publiczny wraz z jego algorytmem;
     \item \texttt{chain\_id} - identyfikator łańcucha, dla którego transakcja jest przeznaczona; jego obecność w danych podpisywanych uniemożliwia ponowne odtworzenie transakcji na innym łańcuchu (sekcja~\ref{sec:protokoly});
-    \item \texttt{signature} - podpis cyfrowy obejmujący deterministyczną serializację transakcji;
+    \item \texttt{signature} - podpis cyfrowy transakcji; transakcja jest najpierw serializowana w sposób deterministyczny do postaci bajtowej, a następnie podpisywana kluczem prywatnym właściciela.
 \end{itemize}
 
-Skrótem transakcji jest wartość SHA-256 z owej serializacji z wyzerowanym podpisem - nazywanej dalej \emph{bajtami do podpisania} (\emph{sign bytes}) - dzięki czemu skrót i podpis obejmują dokładnie tę samą, kanoniczną postać danych. Konsekwencją tej konstrukcji jest, że modyfikacja jakiegokolwiek pola transakcji (np.\ podmiana domeny w przechwyconej transakcji unieważnienia) zmienia bajty do podpisania i unieważnia podpis, co wykazano empirycznie w rozdziale~\ref{ch:analiza-bezpieczenstwa}.
+Skrótem transakcji jest wartość SHA-256 z owej serializacji z wyzerowanym podpisem, nazywanej dalej \emph{bajtami do podpisania} (\emph{sign bytes}), dzięki czemu skrót i podpis obejmują dokładnie tę samą, kanoniczną postać danych. Konsekwencją tej konstrukcji jest, że modyfikacja jakiegokolwiek pola transakcji (np.\ podmiana domeny w przechwyconej transakcji unieważnienia) zmienia bajty do podpisania i unieważnia podpis, co potwierdzają wyniki w rozdziale~\ref{ch:analiza-bezpieczenstwa}.
 
 \subsection{Stan aplikacji i drzewo Merkle}
 \label{subsec:stan-merkle}
 
 Stan rejestru jest odwzorowaniem nazwy domeny na strukturę \texttt{DomainState}, opisującą bieżące, kompletne wcielenie wiązania:
-
 \begin{itemize}
     \item \texttt{certificate} - aktualny certyfikat domeny;
     \item \texttt{nonce} - licznik wykonanych operacji modyfikujących, służący ochronie przed ponownym odtworzeniem transakcji (\emph{replay});
@@ -211,23 +203,22 @@ Stan przechowywany jest w rzadkim drzewie Merkle (sekcja~\ref{sec:merkle}) o gł
     \label{fig:stan}
 \end{figure}
 
-Korzeń drzewa jest zwięzłym zobowiązaniem wobec całego stanu rejestru i to on jest zwracany silnikowi konsensusu jako app hash. Drzewo udostępnia, obok odczytu i zapisu, generowanie dowodów dwóch rodzajów: dowodu włączenia, poświadczającego, że dana domena ma w stanie określone wiązanie, oraz dowodu nieobecności, poświadczającego, że domena nie jest zarejestrowana. Oba mają tę samą postać - ścieżki skrótów rodzeństwa od liścia do korzenia - i oba są weryfikowalne wyłącznie względem korzenia, bez dostępu do reszty drzewa. Dowód nieobecności pozwala stronie ufającej uzyskać weryfikowalną odpowiedź ,,domena nie ma zarejestrowanego certyfikatu'' - czego klasyczna PKI nie oferuje.
+Korzeń drzewa jest zwięzłym kryptograficznym zobowiązaniem do całego stanu rejestru i to on jest zwracany silnikowi konsensusu jako app hash. Drzewo udostępnia, obok odczytu i zapisu, generowanie dowodów dwóch rodzajów: dowodu włączenia, poświadczającego, że dana domena ma w stanie określone wiązanie, oraz dowodu nieobecności, poświadczającego, że domena nie jest zarejestrowana. Oba mają tę samą postać - ścieżki skrótów rodzeństwa od liścia do korzenia - i oba są weryfikowalne wyłącznie względem korzenia, bez dostępu do reszty drzewa. Dowód nieobecności pozwala stronie ufającej uzyskać weryfikowalną odpowiedź ,,domena nie ma zarejestrowanego certyfikatu'', czego klasyczna PKI nie oferuje.
 
 W prototypie magazyn klucz--wartość, na którym osadzone jest drzewo, jest magazynem w pamięci operacyjnej; abstrakcja interfejsu magazynu pozwala jednak zastąpić go magazynem trwałym (np.\ wbudowaną bazą klucz--wartość) bez zmiany logiki drzewa ani aplikacji. Konsekwencje braku trwałości oraz mechanizm odzyskiwania stanu przez ponowne odtworzenie historii bloków omówiono w rozdziale~\ref{ch:implementacja} oraz w kontekście odporności na awarie w rozdziale~\ref{ch:analiza-bezpieczenstwa}.
 
 \section{Protokoły operacji}
 \label{sec:protokoly}
 
-Każda operacja modyfikująca stan przebiega według wspólnego schematu: klient buduje transakcję, podpisuje ją kluczem uprawniającym do operacji i rozgłasza do sieci; węzły poddają ją walidacji przed konsensusem (bramka \texttt{CheckTx}), a po włączeniu do bloku - deterministycznemu wykonaniu (\texttt{FinalizeBlock}). Walidacja rozkłada się zatem na dwa etapy o różnym charakterze: lekki, możliwie tani filtr przed konsensusem oraz autorytatywne, w pełni deterministyczne wykonanie w ramach konsensusu. Podział ten jest konsekwencją wymogu determinizmu (sekcja~\ref{sec:abci}) i powraca w każdej z poniższych operacji. Wynik przetwarzania transakcji sygnalizowany jest kodem: zero oznacza powodzenie, a poszczególne wartości niezerowe nazywają etap, który transakcję odrzucił - błąd dekodowania, walidacji składniowej, niezgodności identyfikatora łańcucha, podpisu, reguły semantycznej bądź weryfikacji własności domeny - dzięki czemu klient odróżnia przyczyny odrzucenia.
+Każda operacja modyfikująca stan przebiega według wspólnego schematu: klient buduje transakcję, podpisuje ją kluczem uprawniającym do operacji i rozgłasza do sieci; węzły poddają ją walidacji przed konsensusem (bramka \texttt{CheckTx}), a po włączeniu do bloku, deterministycznemu wykonaniu (\texttt{FinalizeBlock}). Walidacja rozkłada się zatem na dwa etapy o różnym charakterze: lekki, możliwie tani filtr przed konsensusem oraz autorytatywne, w pełni deterministyczne wykonanie w ramach konsensusu. Podział ten jest konsekwencją wymogu determinizmu (sekcja~\ref{sec:abci}) i powraca w każdej z poniższych operacji. Wynik przetwarzania transakcji sygnalizowany jest kodem: zero oznacza powodzenie, a poszczególne wartości niezerowe wskazują etap, który transakcję odrzucił - błąd dekodowania, walidacji składniowej, niezgodności identyfikatora łańcucha, podpisu, reguły semantycznej bądź weryfikacji własności domeny - dzięki czemu klient odróżnia przyczyny odrzucenia.
 
 \subsection{Rejestracja certyfikatu}
 \label{subsec:rejestracja}
 
 Rejestracja tworzy nowe wiązanie domeny z kluczem. Klient buduje transakcję \texttt{RegisterTx} z certyfikatem zawierającym nazwę domeny i klucz publiczny, podpisuje ją \emph{tym samym} kluczem prywatnym, którego klucz publiczny znajduje się w certyfikacie, i rozgłasza. Węzeł akceptuje rejestrację, gdy spełnione są łącznie warunki:
-
 \begin{itemize}
     \item transakcja jest poprawna składniowo, a identyfikator łańcucha zgodny z łańcuchem węzła;
-    \item podpis jest prawidłowy względem klucza publicznego \emph{zawartego w certyfikacie} - rejestracja jest więc operacją samopoświadczającą: rejestrujący dowodzi posiadania klucza, który chce związać z domeną;
+    \item podpis jest prawidłowy względem klucza publicznego \emph{zawartego w certyfikacie}, przez co rejestracja jest operacją samopoświadczającą: rejestrujący dowodzi posiadania klucza, który chce związać z domeną;
     \item domena nie jest jeszcze zarejestrowana;
     \item dla danej domeny i klucza udowodniono kontrolę nad domeną w mechanizmie weryfikacji własności (sekcja~\ref{sec:wlasnosc-domeny}).
 \end{itemize}
@@ -237,19 +228,19 @@ Po pomyślnej rejestracji w stanie powstaje nowy wpis \texttt{DomainState} z lic
 \subsection{Weryfikacja powiązania domena-klucz}
 \label{subsec:weryfikacja}
 
-Weryfikacja bieżącego wiązania jest operacją odczytu wykonywaną przez stronę ufającą. Klient odpytuje węzeł o stan danej domeny, otrzymując w odpowiedzi strukturę \texttt{DomainState} (lub informację o jej braku) wraz z dowodem Merkle. Następnie klient \emph{lokalnie} weryfikuje dowód względem korzenia zaufania pozyskanego z nagłówka bloku, zamiast przyjmować odpowiedź węzła na słowo. Tu leży istota modelu zaufania systemu. Dopiero dowód zweryfikowany pozytywnie pozwala uznać, że przedstawione wiązanie jest aktualnym, niekwestionowanym stanem rejestru dla danej domeny. Szczegóły pozyskiwania korzenia oraz weryfikacji w trybie wielowęzłowym i offline opisano w sekcji~\ref{sec:api}; mechanizm ten jest tym, co zastępuje odpytywanie CRL i OCSP modelu klasycznego (sekcja~\ref{sec:crl-ocsp}) samoweryfikującą się odpowiedzią.
+Weryfikacja bieżącego wiązania jest operacją odczytu wykonywaną przez stronę ufającą. Klient odpytuje węzeł o stan danej domeny, otrzymując w odpowiedzi strukturę \texttt{DomainState} (lub informację o jej braku) wraz z dowodem Merkle. Następnie klient \emph{lokalnie} weryfikuje dowód względem korzenia zaufania pozyskanego z nagłówka bloku, zamiast przyjmować odpowiedź węzła na słowo. To właśnie stanowi istotę modelu zaufania systemu. Dopiero dowód zweryfikowany pozytywnie pozwala uznać, że przedstawione wiązanie jest aktualnym, niekwestionowanym stanem rejestru dla danej domeny. Szczegóły pozyskiwania korzenia oraz weryfikacji w trybie wielowęzłowym i offline opisano w sekcji~\ref{sec:api}; mechanizm ten jest tym, co zastępuje odpytywanie CRL i OCSP modelu klasycznego (sekcja~\ref{sec:crl-ocsp}) samoweryfikującą się odpowiedzią.
 
 \subsection{Rotacja klucza}
 \label{subsec:rotacja}
 
-Rotacja zastępuje bieżący klucz domeny nowym, bez zmiany samej domeny - jest podstawowym mechanizmem higieny kluczy oraz reakcji na podejrzenie kompromitacji jeszcze przed jej potwierdzeniem. Klient buduje transakcję \texttt{RotateTx} zawierającą nazwę domeny, nowy klucz publiczny wraz z jego algorytmem oraz licznik o wartości o jeden większej niż licznik zapisany w bieżącym stanie. Transakcję podpisuje \emph{dotychczasowy} klucz prywatny, nie nowy. Uprawnienie do rotacji wynika bowiem z kontroli nad aktualnym kluczem domeny. Klucz uprawniający odczytywany jest przez węzeł ze stanu, a nie z transakcji, co uniemożliwia adwersarzowi A1 samodzielne przejęcie domeny. Węzeł akceptuje rotację, gdy domena istnieje i nie jest unieważniona, podpis jest prawidłowy względem bieżącego klucza ze stanu, a licznik transakcji jest dokładnie o jeden większy od zapisanego. Po wykonaniu w stanie zapisywany jest nowy certyfikat z numerem wersji zwiększonym o jeden, a licznik zostaje zaktualizowany.
+Rotacja zastępuje bieżący klucz domeny nowym, bez zmiany samej domeny. Jest podstawowym mechanizmem higieny kluczy oraz reakcji na podejrzenie kompromitacji jeszcze przed jej potwierdzeniem. Klient buduje transakcję \texttt{RotateTx} zawierającą nazwę domeny, nowy klucz publiczny wraz z jego algorytmem oraz licznik o wartości o jeden większej niż licznik zapisany w bieżącym stanie. Transakcję podpisuje \emph{dotychczasowy} klucz prywatny, nie nowy. Uprawnienie do rotacji wynika bowiem z kontroli nad aktualnym kluczem domeny. Klucz uprawniający odczytywany jest przez węzeł ze stanu, a nie z transakcji, co uniemożliwia adwersarzowi A1 samodzielne przejęcie domeny. Węzeł akceptuje rotację, gdy domena istnieje i nie jest unieważniona, podpis jest prawidłowy względem bieżącego klucza ze stanu, a licznik transakcji jest dokładnie o jeden większy od zapisanego. Po wykonaniu w stanie zapisywany jest nowy certyfikat z numerem wersji zwiększonym o jeden, a licznik zostaje zaktualizowany.
 
 \subsection{Unieważnienie certyfikatu}
 \label{subsec:uniewaznienie}
 
-Unieważnienie trwale odwołuje wiązanie - jest odpowiednikiem wpisu na listę CRL lub negatywnej odpowiedzi OCSP, lecz o gwarancjach kryptograficznych i propagacji w czasie jednego bloku. Klient buduje transakcję \texttt{RevokeTx} z nazwą domeny, opcjonalnym powodem oraz licznikiem o jeden większym niż bieżący, i podpisuje ją bieżącym kluczem domeny. Reguły autoryzacji są analogiczne jak przy rotacji: podpis musi odpowiadać kluczowi ze stanu, a licznik być dokładnie kolejny. Po wykonaniu wpis \texttt{DomainState} zostaje oznaczony jako unieważniony, z zapisanym znacznikiem czasu i powodem.
+Unieważnienie trwale odwołuje wiązanie. Jest odpowiednikiem wpisu na listę CRL lub negatywnej odpowiedzi OCSP, lecz o gwarancjach kryptograficznych i propagacji w czasie jednego bloku. Klient buduje transakcję \texttt{RevokeTx} z nazwą domeny, opcjonalnym powodem oraz licznikiem o jeden większym niż bieżący, i podpisuje ją bieżącym kluczem domeny. Reguły autoryzacji są analogiczne jak przy rotacji: podpis musi odpowiadać kluczowi ze stanu, a licznik być dokładnie kolejny. Po wykonaniu wpis \texttt{DomainState} zostaje oznaczony jako unieważniony, z zapisanym znacznikiem czasu i powodem.
 
-Unieważnienie jest \emph{trwałe}: unieważniony wpis pozostaje w stanie rejestru i nie może zostać przywrócony. W szczególności ponowne odtworzenie pierwotnej, poprawnie podpisanej transakcji rejestracji po unieważnieniu jest odrzucane, ponieważ domena nadal istnieje w stanie (jako unieważniona) i nie spełnia warunku nieistnienia wymaganego przy rejestracji. Eliminuje to atak ,,od-unieważnienia'' istotny w scenariuszu kompromitacji klucza (adwersarz A4) i wykazany empirycznie w rozdziale~\ref{ch:analiza-bezpieczenstwa}.
+Unieważnienie jest \emph{trwałe}: unieważniony wpis pozostaje w stanie rejestru i nie może zostać przywrócony. W szczególności ponowne odtworzenie pierwotnej, poprawnie podpisanej transakcji rejestracji po unieważnieniu jest odrzucane, ponieważ domena nadal istnieje w stanie (jako unieważniona) i nie spełnia warunku nieistnienia wymaganego przy rejestracji. Udaremnia to próbę cofnięcia unieważnienia przez ponowne odtworzenie pierwotnej rejestracji, istotną w scenariuszu kompromitacji klucza (adwersarz A4), którą ilustruje rozdział~\ref{ch:analiza-bezpieczenstwa}.
 
 \section{Weryfikacja własności domeny}
 \label{sec:wlasnosc-domeny}
@@ -317,26 +308,24 @@ Wartość wyzwania jest wyznaczana deterministycznie z danych publicznych, jako 
     \texttt{wyzwanie = SHA-256(domena || 0x00 || klucz\_publiczny || 0x00 || id\_łańcucha)}
 \end{center}
 
-\noindent gdzie symbol \texttt{||} oznacza konkatenację, a \texttt{0x00} - bajt zerowy. Separatory zerowe zapewniają rozdzielność dziedzin, uniemożliwiając kolizje konkatenacji. Determinizm wartości jest konieczny, by zarówno klient (instruując właściciela), jak i każdy walidator (sprawdzając) wyznaczali ją identycznie, bez współdzielonego sekretu. Związanie wartości z kluczem publicznym zapewnia odporność na atak typu \emph{front-running}. Adwersarz A1, który obserwuje oczekującą transakcję rejestracji i kopiuje opublikowaną wartość wyzwania, próbując zarejestrować domenę na własny klucz, wyznacza inną wartość oczekiwaną (zależną od \emph{jego} klucza), więc opublikowany przez prawdziwego właściciela rekord nie pasuje. Związanie z identyfikatorem łańcucha uniemożliwia z kolei ponowne użycie wyzwania na innym łańcuchu.
+\noindent gdzie symbol \texttt{||} oznacza konkatenację, a \texttt{0x00} oznacza bajt zerowy. Separatory zerowe zapewniają rozdzielność dziedzin, uniemożliwiając kolizje konkatenacji. Determinizm wartości jest konieczny, by zarówno klient (instruując właściciela), jak i każdy walidator (sprawdzając) wyznaczali ją identycznie, bez współdzielonego sekretu. Związanie wartości z kluczem publicznym zapewnia odporność na atak typu \emph{front-running}. Adwersarz A1, który obserwuje oczekującą transakcję rejestracji i kopiuje opublikowaną wartość wyzwania, próbując zarejestrować domenę na własny klucz, wyznacza inną wartość oczekiwaną (zależną od \emph{jego} klucza), więc opublikowany przez prawdziwego właściciela rekord nie pasuje. Związanie z identyfikatorem łańcucha uniemożliwia z kolei ponowne użycie wyzwania na innym łańcuchu.
 
-Weryfikację DNS umiejscowiono przed konsensusem - w bramce \texttt{CheckTx} oraz przy ocenie cudzej propozycji bloku (\texttt{ProcessProposal}) - a \emph{nigdy} w deterministycznym wykonaniu \texttt{FinalizeBlock}. Zapytanie DNS jest bowiem niedeterministycznym wejściem zewnętrznym: jego wynik zależy od chwili i miejsca odpytania, a rekord TXT może zostać usunięty po rejestracji. Umieszczenie go w \texttt{FinalizeBlock} złamałoby determinizm wymagany przez konsensus (rozbieżne wyniki u różnych walidatorów) oraz uniemożliwiło ponowne odtworzenie historii bloków przy odzyskiwaniu stanu (rekord TXT mógłby już nie istnieć). Umieszczenie weryfikacji jako bramki przedkonsensusowej godzi wymóg sprawdzenia kontroli nad domeną z wymogiem determinizmu wykonania. Konsekwencją jest, że gwarancja systemu dotyczy kontroli nad DNS w chwili rejestracji, nie zaś ,,własności'' domeny w sensie prawnym - adwersarz kontrolujący strefę DNS ofiary w oknie rejestracji zarejestruje ją na swój klucz; ograniczenie to jest wspólne z całym ekosystemem ACME i omówiono je w rozdziale~\ref{ch:analiza-bezpieczenstwa}.
+Weryfikację DNS umieszczono przed konsensusem - w bramce \texttt{CheckTx} oraz przy ocenie cudzej propozycji bloku (\texttt{ProcessProposal}) - a \emph{nigdy} w deterministycznym wykonaniu \texttt{FinalizeBlock}. Zapytanie DNS jest bowiem niedeterministycznym wejściem zewnętrznym: jego wynik zależy od chwili i miejsca odpytania, a rekord TXT może zostać usunięty po rejestracji. Umieszczenie go w \texttt{FinalizeBlock} złamałoby determinizm wymagany przez konsensus (rozbieżne wyniki u różnych walidatorów) oraz uniemożliwiło ponowne odtworzenie historii bloków przy odzyskiwaniu stanu (rekord TXT mógłby już nie istnieć). Umieszczenie weryfikacji jako bramki przedkonsensusowej pozwala pogodzić wymóg sprawdzenia kontroli nad domeną z wymogiem determinizmu wykonania. Konsekwencją jest, że gwarancja systemu dotyczy kontroli nad DNS w chwili rejestracji, nie zaś ,,własności'' domeny w sensie prawnym. Adwersarz kontrolujący strefę DNS ofiary w oknie rejestracji zarejestruje ją na swój klucz; ograniczenie to jest wspólne z całym ekosystemem ACME i omówiono je w rozdziale~\ref{ch:analiza-bezpieczenstwa}.
 
 \section{Interfejs zewnętrzny (API)}
 \label{sec:api}
 
 System udostępnia dwa rodzaje interakcji zewnętrznej, obie realizowane przez interfejs RPC silnika konsensusu: rozgłaszanie transakcji oraz zapytania o stan. Transakcje rozgłaszane są w postaci zserializowanej i trafiają do bramki \texttt{CheckTx}, a następnie - po włączeniu do bloku - do wykonania. Zapytania obsługiwane są poza ścieżką konsensusu i obejmują dwie ścieżki:
-
 \begin{itemize}
     \item \textbf{zapytanie o stan} - zwraca bieżącą strukturę \texttt{DomainState} danej domeny albo informację o jej braku;
     \item \textbf{zapytanie o stan z dowodem} - zwraca dodatkowo dowód Merkle (włączenia lub nieobecności), umożliwiający weryfikację odpowiedzi względem korzenia zaufania.
 \end{itemize}
 
 Korzeń, względem którego weryfikuje się dowód, nie jest pobierany z tego samego zapytania, lecz z nagłówka bloku poświadczonego podpisami walidatorów. Ponieważ skrót stanu po wysokości $H$ trafia do nagłówka bloku $H+1$ (sekcja~\ref{sec:architektura}), klient wyznacza korzeń z nagłówka kolejnego bloku, a przy odpytywaniu czubka łańcucha krótko oczekuje na jego wytworzenie. Na tej podstawie zaprojektowano trzy tryby weryfikacji o rosnącym poziomie minimalizacji zaufania:
-
 \begin{itemize}
     \item \textbf{tryb jednowęzłowy} - klient pobiera stan i dowód z jednego węzła i weryfikuje dowód lokalnie względem korzenia z nagłówka; nawet zwykły odczyt jest więc uwierzytelniony, a nie przyjmowany na zaufanie;
     \item \textbf{tryb wielowęzłowy} - klient powtarza weryfikację wobec wielu węzłów i wymaga zgodności udowodnionych stanów oraz skrótów stanu na tej samej wysokości; pojedynczy skompromitowany węzeł (adwersarz A2, A5) zostaje w ten sposób wykryty, o ile nie kontroluje większości pozwalającej sfałszować nagłówki;
     \item \textbf{tryb offline} - klient weryfikuje wcześniej zapisany dowód względem korzenia dostarczonego jawnie, bez połączenia z siecią; korzeń musi pochodzić ze źródła, któremu klient ufa, a kopia skrótu zapisana wraz z dowodem ma charakter wyłącznie informacyjny.
 \end{itemize}
 
-Tak zaprojektowany interfejs realizuje wymaganie weryfikowalności po stronie klienta: strona ufająca potrafi rozstrzygnąć, czy dany klucz jest aktualnym, nieunieważnionym wiązaniem domeny - a także czy domena jest w ogóle zarejestrowana - dysponując jedynie zaufanym korzeniem i dowodem, bez konieczności ufania pojedynczemu węzłowi i bez odpytywania scentralizowanej infrastruktury statusu. Odwzorowanie przedstawionego projektu na konkretną implementację warstwy aplikacji oraz klienta, wraz z organizacją kodu i interfejsem wiersza poleceń, jest przedmiotem następnego rozdziału.
+Interfejs w tej postaci spełnia wymaganie weryfikowalności po stronie klienta: strona ufająca potrafi rozstrzygnąć, czy dany klucz jest aktualnym, nieunieważnionym wiązaniem domeny - a także czy domena jest w ogóle zarejestrowana - dysponując jedynie zaufanym korzeniem i dowodem, bez konieczności ufania pojedynczemu węzłowi i bez odpytywania scentralizowanej infrastruktury sprawdzania statusu certyfikatów (jak CRL czy OCSP). Odwzorowanie przedstawionego projektu na konkretną implementację warstwy aplikacji oraz klienta, wraz z organizacją kodu i interfejsem wiersza poleceń, jest przedmiotem następnego rozdziału.

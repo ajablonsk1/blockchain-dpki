@@ -6,7 +6,6 @@
 \label{sec:srodowisko}
 
 Prototyp zaimplementowano w języku Go, wybranym z przyczyn omówionych w sekcji~\ref{sec:wybor-technologii}. Wykorzystano następujące komponenty i narzędzia:
-
 \begin{itemize}
     \item \textbf{CometBFT} w wersji 0.38 (ABCI 2.0) - silnik konsensusu; aplikacja osadza go w procesie węzła i komunikuje się z nim lokalnie przez interfejs ABCI;
     \item \textbf{Protocol Buffers} - schemat danych zdefiniowano w plikach \texttt{.proto}, a struktury Go wygenerowano kompilatorem \texttt{protoc} z wtyczką \texttt{protoc-gen-go}; generacja jest zautomatyzowana za pomocą \texttt{make proto-gen};
@@ -15,7 +14,7 @@ Prototyp zaimplementowano w języku Go, wybranym z przyczyn omówionych w sekcji
     \item wbudowany w język \textbf{framework testowy} \texttt{go test}, uzupełniony o testy z wykrywaniem wyścigów (\emph{race detector}) oraz testy rozmyte (\emph{fuzz testing}).
 \end{itemize}
 
-Budowanie i typowe operacje ujęto w pliku \texttt{Makefile}: \texttt{make build} kompiluje trzy programy - węzeł \texttt{dpkid}, klienta \texttt{dpki-cli} oraz narzędzie pomiarowe \texttt{benchmark}. Umieszcza je w katalogu \texttt{bin/}, a \texttt{make test} i \texttt{make test-cover} uruchamiają zestaw testów z wykrywaniem wyścigów i z pomiarem pokrycia.
+Budowanie i typowe operacje ujęto w pliku \texttt{Makefile}: \texttt{make build} kompiluje trzy programy (węzeł \texttt{dpkid}, klienta \texttt{dpki-cli} oraz narzędzie pomiarowe \texttt{benchmark}) i umieszcza je w katalogu \texttt{bin/}, a \texttt{make test} i \texttt{make test-cover} uruchamiają zestaw testów z wykrywaniem wyścigów i z pomiarem pokrycia.
 
 \section{Struktura projektu}
 \label{sec:struktura-projektu}
@@ -26,9 +25,9 @@ Kod zorganizowano zgodnie z konwencjami ekosystemu Go, oddzielając programy wyk
     \item \texttt{cmd/dpkid} - punkt wejścia węzła; \texttt{init} (inicjalizacja pojedynczego węzła), \texttt{start} (uruchomienie) oraz \texttt{testnet} (generowanie sieci wielowęzłowej, sekcja~\ref{sec:siec-wielowezlowa});
     \item \texttt{cmd/dpki-cli} - klient; podkatalog \texttt{commands} zawiera definicje komend Cobry, a \texttt{client} - nakładkę na interfejs RPC węzła;
     \item \texttt{cmd/benchmark} - narzędzie generujące obciążenie i mierzące wydajność, wykorzystane w rozdziale~\ref{ch:eksperymenty};
-    \item \texttt{internal/types} - model danych: struktury wygenerowane z Protocol Buffers (pliki \texttt{.pb.go}) oraz logika towarzysząca - konstruktory, walidacja składniowa, wyznaczanie bajtów do podpisania i podpisywanie;
+    \item \texttt{internal/types} - model danych: struktury wygenerowane z Protocol Buffers (pliki \texttt{.pb.go}) oraz logika towarzysząca (konstruktory, walidacja składniowa, wyznaczanie bajtów do podpisania i podpisywanie);
     \item \texttt{internal/crypto} - prymitywy kryptograficzne: generowanie i obsługa kluczy Ed25519, podpis i weryfikacja oraz funkcja skrótu SHA-256;
-    \item \texttt{internal/state} - warstwa stanu: rzadkie drzewo Merkle, abstrakcja magazynu klucz-wartość, kodowanie dowodów oraz odwzorowanie domeny na wpis stanu;
+    \item \texttt{internal/state} - warstwa stanu: rzadkie drzewo Merkle, abstrakcja magazynu klucz--wartość, kodowanie dowodów oraz odwzorowanie domeny na wpis stanu;
     \item \texttt{internal/app} - aplikacja ABCI spinająca powyższe warstwy w deterministyczną maszynę stanów;
     \item \texttt{internal/verifier} - weryfikacja własności domeny metodą DNS-01;
     \item \texttt{internal/testhelpers} - współdzielone funkcje pomocnicze testów.
@@ -37,7 +36,7 @@ Kod zorganizowano zgodnie z konwencjami ekosystemu Go, oddzielając programy wyk
 \section{Aplikacja ABCI}
 \label{sec:aplikacja-abci}
 
-Centralnym elementem systemu jest aplikacja ABCI w pakiecie \texttt{internal/app}, reprezentowana strukturą \texttt{App}. Osadza ona typ \texttt{abci.BaseApplication} z biblioteki CometBFT, dzięki czemu metody interfejsu ABCI nieistotne dla DPKI zachowują domyślne, puste zachowanie, a nadpisane zostają jedynie metody niosące logikę rejestru: \texttt{Info}, \texttt{InitChain}, \texttt{CheckTx}, \texttt{ProcessProposal}, \texttt{FinalizeBlock}, \texttt{Commit} oraz \texttt{Query}. Strukturę \texttt{App} przedstawia listing~\ref{lst:app-struct}.
+Centralnym elementem systemu jest aplikacja ABCI w pakiecie \texttt{internal/\allowbreak app}, reprezentowana strukturą \texttt{App}. Osadza ona typ \texttt{abci.BaseApplication} z biblioteki CometBFT, dzięki czemu metody interfejsu ABCI nieistotne dla DPKI zachowują domyślne, puste zachowanie, a nadpisane zostają jedynie metody niosące logikę rejestru: \texttt{Info}, \texttt{InitChain}, \texttt{CheckTx}, \texttt{ProcessProposal}, \texttt{FinalizeBlock}, \texttt{Commit} oraz \texttt{Query}. Strukturę \texttt{App} przedstawia listing~\ref{lst:app-struct}.
 
 \begin{lstlisting}[language=Go,caption={Struktura aplikacji ABCI},label={lst:app-struct}]
 type App struct {
@@ -52,57 +51,55 @@ type App struct {
 }
 \end{lstlisting}
 
-Dwie decyzje widoczne w tej strukturze wymagają komentarza. Po pierwsze, identyfikator łańcucha (\texttt{chainID}) jest przekazywany aplikacji przy jej tworzeniu, na podstawie pliku konfiguracji początkowej, a nie odczytywany z wywołania \texttt{InitChain}. Wywołanie to następuje bowiem tylko raz, przy pierwszym uruchomieniu łańcucha; gdyby aplikacja zależała od niego, po restarcie węzła i ponownym odtwarzaniu bloków przez \texttt{FinalizeBlock} utraciłaby informację potrzebną do walidacji. Po drugie, dostęp do drzewa stanu jest serializowany muteksem \texttt{mu}, ponieważ CometBFT obsługuje połączenia konsensusu, mempoola i zapytań współbieżnie: \texttt{FinalizeBlock} i \texttt{Commit} używają blokady zapisu, a \texttt{CheckTx}, \texttt{Query} oraz \texttt{Info} - odczytu.
+Warto skomentować dwie decyzje widoczne w tej strukturze, dotyczące identyfikatora łańcucha oraz muteksu. Identyfikator łańcucha (\texttt{chainID}) jest przekazywany aplikacji przy jej tworzeniu, na podstawie pliku konfiguracji początkowej, a nie odczytywany z wywołania \texttt{InitChain}. Wywołanie to następuje bowiem tylko raz, przy pierwszym uruchomieniu łańcucha; gdyby aplikacja zależała od niego, po restarcie węzła i ponownym odtwarzaniu bloków przez \texttt{FinalizeBlock} utraciłaby informację potrzebną do walidacji. Dostęp do drzewa stanu jest z kolei serializowany muteksem \texttt{mu}, ponieważ CometBFT obsługuje połączenia konsensusu, puli transakcji oczekujących i zapytań współbieżnie: \texttt{FinalizeBlock} i \texttt{Commit} używają blokady zapisu, a \texttt{CheckTx}, \texttt{Query} oraz \texttt{Info} - odczytu.
 
 \subsection{Obsługa CheckTx i FinalizeBlock}
 \label{subsec:checktx-finalize}
 
 Dwuetapowa walidacja zapowiedziana w sekcji~\ref{sec:protokoly} rozkłada się na dwie metody. Podział ten wynika wprost z wymogu determinizmu, jaki narzuca interfejs ABCI (sekcja~\ref{sec:abci}).
 
-Metoda \texttt{CheckTx} jest tanim filtrem mempoola, niezmieniającym stan. Wykonuje kolejno: dekodowanie transakcji, walidację składniową, kontrolę zgodności identyfikatora łańcucha, weryfikację podpisu oraz pobieżne sprawdzenie reguł logicznych. To ostatnie celowo \emph{nie} egzekwuje dokładnej wartości licznika, a jedynie odrzuca transakcje, które nie mogą stać się poprawne (rejestracja istniejącej domeny, mutacja z licznikiem już przeterminowanym). Ponieważ mempool może przechowywać transakcje w kolejności nieco innej niż docelowa, transakcja wyprzedzająca swoją poprzedniczkę nie powinna być przedwcześnie odrzucona. Dla transakcji rejestracji \texttt{CheckTx} wywołuje dodatkowo weryfikację własności domeny; ponieważ wiąże się ona z niedeterministycznym zapytaniem DNS, jest wykonywana \emph{poza} blokadą stanu i decyduje jedynie o przyjęciu transakcji do mempoola (ostateczną weryfikację wykonuje \texttt{ProcessProposal} przed konsensusem).
+Metoda \texttt{CheckTx} jest tanim filtrem puli transakcji oczekujących, niezmieniającym stan. Wykonuje kolejno: dekodowanie transakcji, walidację składniową, kontrolę zgodności identyfikatora łańcucha, weryfikację podpisu oraz pobieżne sprawdzenie reguł logicznych. To ostatnie celowo \emph{nie} egzekwuje dokładnej wartości licznika, a jedynie odrzuca transakcje, które nie mogą stać się poprawne (rejestracja istniejącej domeny, mutacja z licznikiem już przeterminowanym). Ponieważ pula może przechowywać transakcje w kolejności nieco innej niż docelowa, transakcja, która dotarła przed transakcją poprzedzającą ją w kolejności liczników, nie powinna być przedwcześnie odrzucona. Dla transakcji rejestracji \texttt{CheckTx} wywołuje dodatkowo weryfikację własności domeny; ponieważ wiąże się ona z niedeterministycznym zapytaniem DNS, jest wykonywana \emph{poza} blokadą stanu i decyduje jedynie o przyjęciu transakcji do puli (ostateczną weryfikację wykonuje \texttt{ProcessProposal} przed konsensusem).
 
-Metoda \texttt{FinalizeBlock} jest autorytatywna i w pełni deterministyczna. Wykonuje każdą transakcję bloku po kolei, a wynik - skrót stanu (korzeń drzewa) - zwraca jako pole \texttt{AppHash} odpowiedzi. W ABCI 2.0 to właśnie tutaj, a nie w \texttt{Commit}, zwracany jest skrót stanu; sama metoda \texttt{Commit} jest w implementacji operacją pustą. Powtarza ona kontrole z \texttt{CheckTx}, lecz egzekwuje już \emph{dokładną} kolejną wartość licznika i faktycznie modyfikuje drzewo. Transakcja nieprawidłowa otrzymuje niezerowy kod wyniku i pozostawia stan nietknięty, lecz \emph{nie} przerywa przetwarzania bloku - konsensus zgodził się już na włączenie tych bajtów, a transakcja odrzucona jest wynikiem przetwarzania, a nie awarią węzła. Determinizm tej ścieżki jest warunkiem koniecznym zgodności skrótów stanu między walidatorami. Jego praktyczną weryfikację opisano w sekcji~\ref{sec:testy} oraz w rozdziale~\ref{ch:eksperymenty}.
+Metoda \texttt{FinalizeBlock} jest w pełni deterministyczna. Wykonuje każdą transakcję bloku po kolei, a wynik - skrót stanu (korzeń drzewa) - zwraca jako pole \texttt{AppHash} odpowiedzi. W ABCI 2.0 to właśnie tutaj, a nie w \texttt{Commit}, zwracany jest skrót stanu; sama metoda \texttt{Commit} jest w implementacji operacją pustą. Powtarza ona kontrole z \texttt{CheckTx}, lecz egzekwuje już \emph{dokładną} kolejną wartość licznika i faktycznie modyfikuje drzewo. Transakcja nieprawidłowa otrzymuje niezerowy kod wyniku i pozostawia stan nietknięty, lecz \emph{nie} przerywa przetwarzania bloku - węzły w drodze konsensusu zaakceptowały już te bajty, a transakcja odrzucona jest wynikiem przetwarzania, a nie awarią węzła. Determinizm tej ścieżki jest warunkiem koniecznym zgodności skrótów stanu między walidatorami. Jego praktyczną weryfikację opisano w sekcji~\ref{sec:testy} oraz w rozdziale~\ref{ch:eksperymenty}.
 
-Weryfikacja własności domeny powtarzana jest jeszcze w metodzie \texttt{ProcessProposal}, którą każdy walidator wykonuje na proponowanym bloku przed oddaniem głosu. Gdyby weryfikację umieścić wyłącznie w \texttt{CheckTx}, nieuczciwy proponent mógłby pominąć mempool i umieścić w bloku nieuwierzytelnioną rejestrację; ponowna weryfikacja na poziomie propozycji zamyka tę lukę, odrzucając cały blok zawierający rejestrację bez ważnego dowodu kontroli nad domeną. Podobnie jak \texttt{CheckTx}, \texttt{ProcessProposal} wykonuje niedeterministyczne zapytania DNS i z tego względu pozostaje przed konsensusem, poza deterministycznym \texttt{FinalizeBlock}.
+Weryfikacja własności domeny powtarzana jest jeszcze w metodzie \texttt{ProcessProposal}, którą każdy walidator wykonuje na proponowanym bloku przed oddaniem głosu. Gdyby weryfikację umieścić wyłącznie w \texttt{CheckTx}, nieuczciwy proponent mógłby pominąć pulę transakcji oczekujących i umieścić w bloku nieuwierzytelnioną rejestrację; ponowna weryfikacja na poziomie propozycji eliminuje tę lukę, odrzucając cały blok zawierający rejestrację bez ważnego dowodu kontroli nad domeną. Podobnie jak \texttt{CheckTx}, \texttt{ProcessProposal} wykonuje niedeterministyczne zapytania DNS i z tego względu pozostaje przed konsensusem, poza deterministycznym \texttt{FinalizeBlock}.
 
 \subsection{Zarządzanie stanem}
 \label{subsec:zarzadzanie-stanem}
 
 Stan aplikacji jest zapisywany do drzewa Merkle \emph{bezpośrednio}, bez utrzymywania osobnej kopii roboczej. Decyzja ta wynika z użytego w moim projekcie magazynu w pamięci operacyjnej, który nie udostępnia \emph{snapshotów}. Przy magazynie trwałym można by rozważyć kopię roboczą i atomowe zatwierdzanie. W obecnej konstrukcji skrót stanu jest po prostu odczytywany z drzewa na końcu \texttt{FinalizeBlock} i zwracany silnikowi konsensusu.
 
-Konsekwencją braku trwałości jest utrata stanu przy zatrzymaniu węzła. Odzyskiwanie opiera się na mechanizmie wbudowanym w CometBFT: silnik przechowuje na dysku magazyn bloków, a po restarcie - na podstawie wysokości i skrótu stanu zaraportowanych przez aplikację w odpowiedzi \texttt{Info} - odtwarza brakujące bloki, ponownie wywołując \texttt{FinalizeBlock}. Ponieważ wykonanie jest deterministyczne, odtworzenie historii rekonstruuje dokładnie ten sam stan i ten sam skrót. Co istotne, ponieważ weryfikacja DNS jest przeprowadzana przed konsensusem, a nie jest częścią \texttt{FinalizeBlock}, odtwarzanie nie powtarza zapytań DNS i przebiega poprawnie nawet wtedy, gdy rekordy TXT użyte przy pierwotnej rejestracji już nie istnieją. Skuteczność odzyskiwania (powrót zrestartowanego walidatora do zgodnego stanu) zweryfikowano praktycznie na sieci testowej (rozdział~\ref{ch:eksperymenty}).
+Konsekwencją braku trwałości jest utrata stanu przy zatrzymaniu węzła. Odzyskiwanie opiera się na mechanizmie wbudowanym w CometBFT: silnik przechowuje na dysku magazyn bloków, a po restarcie - na podstawie wysokości i skrótu stanu zaraportowanych przez aplikację w odpowiedzi \texttt{Info} - odtwarza brakujące bloki, ponownie wywołując \texttt{FinalizeBlock}. Ponieważ wykonanie jest deterministyczne, odtworzenie historii rekonstruuje dokładnie ten sam stan i ten sam skrót. Co istotne, ponieważ weryfikacja DNS jest przeprowadzana przed konsensusem, a nie jest częścią \texttt{FinalizeBlock}, odtwarzanie nie powtarza zapytań DNS i przebiega poprawnie nawet wtedy, gdy rekordy TXT użyte przy pierwotnej rejestracji już nie istnieją. Skuteczność odzyskiwania (powrót zrestartowanego walidatora do zgodnego stanu) potwierdzono eksperymentalnie na sieci testowej (rozdział~\ref{ch:eksperymenty}).
 
-Odwzorowanie domeny na stan realizuje pakiet \texttt{internal/state}: kluczem drzewa jest skrót SHA-256 nazwy domeny, a wartością liścia - deterministyczna serializacja struktury \texttt{DomainState}. Magazyn, na którym osadzone jest drzewo, ukryto za wąskim interfejsem (operacje pobrania, zapisu, usunięcia i zamknięcia), co pozwala zastąpić implementację w pamięci magazynem trwałym bez zmiany logiki drzewa.
+Odwzorowanie domeny na stan realizuje pakiet \texttt{internal/state}: kluczem drzewa jest skrót SHA-256 nazwy domeny, a wartością liścia jest deterministyczna serializacja struktury \texttt{DomainState}. Magazyn, na którym osadzone jest drzewo, ukryto za wąskim interfejsem (operacje pobrania, zapisu, usunięcia i zamknięcia), co pozwala zastąpić implementację w pamięci magazynem trwałym bez zmiany logiki drzewa.
 
 \subsection{Implementacja drzewa Merkle}
 \label{subsec:implementacja-merkle}
 
-Rzadkie drzewo Merkle (sekcja~\ref{sec:merkle}) zaimplementowano jako drzewo binarne o stałej głębokości 256, odpowiadającej długości klucza w bitach. Naiwna reprezentacja takiego drzewa byłaby niewykonalna - liczba węzłów rzędu $2^{256}$ przekracza możliwości jakiegokolwiek magazynu. Wykorzystano zatem obserwację, że przygniatająca większość poddrzew jest pusta i ma z góry znane skróty. W fazie inicjalizacji wyznacza się tablicę \emph{skrótów domyślnych}: skrót pustego liścia to ciąg bajtów zerowych, a skrót pustego węzła na każdym wyższym poziomie powstaje przez połączenie dwóch identycznych skrótów domyślnych z poziomu niższego. Dzięki temu w magazynie przechowywane są wyłącznie węzły na ścieżkach kluczy faktycznie obecnych; aktualizacja jednego klucza dotyka co najwyżej 256 węzłów ścieżki od liścia do korzenia, a węzły, których skrót zapada się do wartości domyślnej, są z magazynu usuwane.
+Rzadkie drzewo Merkle (sekcja~\ref{sec:merkle}) zaimplementowano jako drzewo binarne o stałej głębokości 256, odpowiadającej długości klucza w bitach. Naiwna reprezentacja takiego drzewa byłaby niewykonalna, ponieważ liczba węzłów rzędu $2^{256}$ przekracza możliwości jakiegokolwiek magazynu. Wykorzystano zatem obserwację, że zdecydowana większość poddrzew jest pusta i ma z góry znane skróty. W fazie inicjalizacji wyznacza się tablicę \emph{skrótów domyślnych}: skrót pustego liścia to ciąg bajtów zerowych, a skrót pustego węzła na każdym wyższym poziomie powstaje przez połączenie dwóch identycznych skrótów domyślnych z poziomu niższego. Dzięki temu w magazynie przechowywane są wyłącznie węzły na ścieżkach kluczy faktycznie obecnych; aktualizacja jednego klucza dotyka co najwyżej 256 węzłów ścieżki od liścia do korzenia, a węzły, których skrót zapada się do wartości domyślnej, są z magazynu usuwane.
 
-Szczególną uwagę poświęcono zwięzłości dowodów, od której zależy koszt po stronie strony ufającej. Naiwny dowód zawierałby 256 skrótów rodzeństwa, po jednym na każdy poziom drzewa. Większość z nich to jednak skróty domyślne, które weryfikujący potrafi odtworzyć sam, na podstawie numeru poziomu. Zastosowałem więc kompresję. Struktura dowodu (\texttt{Proof}) niesie trzy pola:
-
+Szczególną uwagę poświęcono zwięzłości dowodów, od której zależy koszt ponoszony przez stronę ufającą. Naiwny dowód zawierałby 256 skrótów rodzeństwa, po jednym na każdy poziom drzewa. Większość z nich to jednak skróty domyślne, które weryfikujący potrafi odtworzyć sam, na podstawie numeru poziomu. Zastosowano więc kompresję. Struktura dowodu (\texttt{Proof}) zawiera trzy pola:
 \begin{itemize}
     \item \texttt{key} - klucz liścia; wartość niepusta dla dowodu włączenia, pusta dla dowodu nieobecności;
     \item \texttt{siblings} - wektor wyłącznie \emph{niedomyślnych} skrótów rodzeństwa;
     \item \texttt{bitmap} - 32-bajtowa mapa bitowa wskazująca poziomy, na których rodzeństwo jest niedomyślne.
 \end{itemize}
 
-Weryfikujący odtwarza pominięte skróty z tablicy wartości domyślnych i przelicza ścieżkę do korzenia. Rozmiar tak skompresowanego dowodu oraz jego zależność od liczby domen przebadano w rozdziale~\ref{ch:eksperymenty}; wyniki potwierdzają przewidywany wzrost rzędu $O(\log N)$. Ponieważ dowody włączenia i nieobecności mają identyczną postać, ta sama procedura weryfikacji obsługuje oba przypadki - i w obu dowód sprawdzalny jest wyłącznie względem korzenia, bez dostępu do reszty drzewa.
+Weryfikujący odtwarza pominięte skróty z tablicy wartości domyślnych i przelicza ścieżkę do korzenia. Rozmiar tak skompresowanego dowodu oraz jego zależność od liczby domen przebadano w rozdziale~\ref{ch:eksperymenty}; wyniki potwierdzają przewidywany wzrost rzędu $O(\log N)$. Ponieważ dowody włączenia i nieobecności mają identyczną postać, ta sama procedura weryfikacji obsługuje oba przypadki, a w obu dowód sprawdzalny jest wyłącznie względem korzenia, bez dostępu do reszty drzewa.
 
 \section{Klient i CLI}
 \label{sec:klient-cli}
 
-Klient \texttt{dpki-cli} jest narzędziem wiersza poleceń zbudowanym na bibliotece Cobra. Zgodnie z zasadą przyjętą w sekcji~\ref{sec:architektura}, klient \emph{nie zawiera logiki biznesowej}: buduje transakcję, podpisuje ją, wysyła i odczytuje wynik bądź weryfikuje dowód. Każda decyzja walidacyjna należy do węzła. Dzięki temu reguły rejestru pozostają w jednym miejscu (aplikacja ABCI), a klient nie może stać się źródłem rozbieżnej interpretacji stanu.
+Klient \texttt{dpki-cli} jest narzędziem wiersza poleceń zbudowanym na bibliotece Cobra. Zgodnie z zasadą przyjętą w sekcji~\ref{sec:architektura}, klient \emph{nie zawiera logiki biznesowej}: buduje transakcję, podpisuje ją, wysyła i odczytuje wynik bądź weryfikuje dowód. Każda decyzja walidacyjna należy do węzła. Dzięki temu reguły rejestru pozostają w jednym miejscu (aplikacja ABCI), a klient nie może interpretować stanu inaczej niż węzeł.
 
 Klient udostępnia komendy odpowiadające operacjom z sekcji~\ref{sec:protokoly} oraz operacjom pomocniczym:
-
 \begin{itemize}
-    \item \texttt{keys} -- generowanie i obsługa par kluczy Ed25519;
-    \item \texttt{challenge} oraz \texttt{challenge-check} -- wyznaczenie wartości wyzwania DNS-01 do opublikowania oraz sprawdzenie jej obecności w DNS przed wysłaniem rejestracji;
-    \item \texttt{register}, \texttt{rotate}, \texttt{revoke} -- budowa, podpisanie i rozgłoszenie odpowiednich transakcji;
-    \item \texttt{lookup} -- odczyt stanu domeny wraz z dowodem i jego lokalną weryfikacją;
-    \item \texttt{verify} -- weryfikacja w trybie wielowęzłowym oraz offline (sekcja~\ref{sec:api});
-    \item \texttt{status} -- odczyt informacji o stanie węzła.
+    \item \texttt{keys} - generowanie i obsługa par kluczy Ed25519;
+    \item \texttt{challenge} oraz \texttt{challenge-check} - wyznaczenie wartości wyzwania DNS-01 do opublikowania oraz sprawdzenie jej obecności w DNS przed wysłaniem rejestracji;
+    \item \texttt{register}, \texttt{rotate}, \texttt{revoke} - budowa, podpisanie i rozgłoszenie odpowiednich transakcji;
+    \item \texttt{lookup} - odczyt stanu domeny wraz z dowodem i jego lokalną weryfikacją;
+    \item \texttt{verify} - weryfikacja w trybie wielowęzłowym oraz offline (sekcja~\ref{sec:api});
+    \item \texttt{status} - odczyt informacji o stanie węzła.
 \end{itemize}
 
 Komunikację z węzłem wydzielono do osobnego pakietu \texttt{client}, stanowiącego nakładkę na interfejs RPC silnika konsensusu. Pakiet ten obsługuje rozgłaszanie transakcji oraz dwie ścieżki zapytań: o stan oraz o stan z dowodem. Odpowiada też za dekodowanie dowodu z odpowiedzi i pozyskanie korzenia zaufania z nagłówka kolejnego bloku. Logika weryfikacji dowodu jest współdzielona z aplikacją przez pakiet \texttt{internal/state}, co gwarantuje, że klient weryfikuje dowód dokładnie tą samą procedurą, którą węzeł go wytworzył.
@@ -110,19 +107,18 @@ Komunikację z węzłem wydzielono do osobnego pakietu \texttt{client}, stanowi�
 \section{Konfiguracja sieci wielowęzłowej}
 \label{sec:siec-wielowezlowa}
 
-Aby umożliwić demonstrację rozproszonych właściwości systemu, takich jak replikacja stanu i odporność na awarie, zaimplementowano podkomendę \texttt{dpkid testnet init}, która jednym wywołaniem generuje kompletną konfigurację lokalnej sieci wielowęzłowej. Rozwiązanie to świadomie zrealizowano w języku Go, a nie w postaci skryptu powłoki: generator korzysta z tych samych bibliotek konfiguracji, kluczy prywatnych walidatora i tożsamości sieciowej, których używa sam węzeł. Dzięki temu nie wymaga zewnętrznych narzędzi i eliminuje klasę błędów wynikających z ręcznej manipulacji plikami konfiguracyjnymi.
+Aby umożliwić demonstrację rozproszonych właściwości systemu, takich jak replikacja stanu i odporność na awarie, zaimplementowano podkomendę \texttt{dpkid testnet init}, która jednym wywołaniem generuje kompletną konfigurację lokalnej sieci wielowęzłowej. Rozwiązanie to świadomie zrealizowano w języku Go, a nie w postaci skryptu powłoki: generator korzysta z tych samych bibliotek konfiguracji, kluczy prywatnych walidatora i tożsamości sieciowej, których używa sam węzeł. Dzięki temu nie wymaga zewnętrznych narzędzi i eliminuje błędy wynikające z ręcznej manipulacji plikami konfiguracyjnymi.
 
 Dla żądanej liczby walidatorów generator tworzy katalog domowy każdego z nich, a w nim:
-
 \begin{itemize}
     \item unikatową parę kluczy konsensusu oraz klucz tożsamości sieciowej;
-    \item wspólny dla całej sieci plik konfiguracji początkowej (\emph{genesis}), wymieniający wszystkich walidatorów -- identyczny co do bajta, ponieważ najmniejsza różnica spowodowałaby odrzucenie węzła jako należącego do innego łańcucha;
+    \item wspólny dla całej sieci plik konfiguracji początkowej (\emph{genesis}), wymieniający wszystkich walidatorów, identyczny co do bajta, ponieważ najmniejsza różnica spowodowałaby odrzucenie węzła jako należącego do innego łańcucha;
     \item konfigurację węzła z przydzielonymi portami.
 \end{itemize}
 
 Węzeł $i$ nasłuchuje na porcie $26656 + 10i$ dla komunikacji P2P oraz $26657 + 10i$ dla RPC. Listę węzłów sąsiednich (\texttt{persistent\_peers}) zestawia się w pełną siatkę z rzeczywistych identyfikatorów tożsamości sieciowej. Ponieważ na pojedynczej maszynie wszystkie węzły dzielą adres lokalny, włączono opcje zezwalające na wielokrotne wystąpienie tego samego adresu. Tryb \texttt{-{}-docker} zmienia adresowanie węzłów sąsiednich na nazwy hostów (\texttt{node0}, \texttt{node1} itd.), co umożliwia uruchomienie sieci w kontenerach.
 
-Zgodnie z arytmetyką konsensusu BFT (sekcja~\ref{subsec:bft-tendermint}) jako konfigurację referencyjną przyjęto cztery węzły -- najmniejszą liczbę dającą nietrywialną odporność na awarie ($n = 3f + 1$ dla $f = 1$). Uruchamianie i zatrzymywanie sieci ujęto w skryptach pomocniczych, a zachowanie sieci w poszczególnych scenariuszach awarii przebadano w rozdziale~\ref{ch:eksperymenty}.
+Zgodnie z arytmetyką konsensusu BFT (sekcja~\ref{subsec:bft-tendermint}) jako konfigurację referencyjną przyjęto cztery węzły, najmniejszą liczbę dającą nietrywialną odporność na awarie ($n = 3f + 1$ dla $f = 1$). Uruchamianie i zatrzymywanie sieci ujęto w skryptach pomocniczych, a zachowanie sieci w poszczególnych scenariuszach awarii przebadano w rozdziale~\ref{ch:eksperymenty}.
 
 \section{Testy jednostkowe i integracyjne}
 \label{sec:testy}
@@ -131,30 +127,30 @@ Implementację objęto wielowarstwowym zestawem testów, którego celem było ni
 
 \begin{itemize}
     \item \textbf{testy jednostkowe} pokrywają poszczególne pakiety: prymitywy kryptograficzne, walidację i serializację modelu danych, operacje drzewa Merkle wraz z kodowaniem dowodów oraz weryfikację DNS-01;
-    \item \textbf{testy integracyjne} weryfikują pełny przepływ przez aplikację ABCI - od rejestracji, przez rotację i unieważnienie, po wygenerowanie dowodu i jego weryfikację offline, a także sprawdzają determinizm wykonania, porównując skróty stanu uzyskane przy powtórzonym przetwarzaniu tej samej sekwencji transakcji;
+    \item \textbf{testy integracyjne} weryfikują pełny przepływ przez aplikację ABCI, od rejestracji, przez rotację i unieważnienie, po wygenerowanie dowodu i jego weryfikację offline, a także sprawdzają determinizm wykonania, porównując skróty stanu uzyskane przy powtórzonym przetwarzaniu tej samej sekwencji transakcji;
     \item \textbf{testy bezpieczeństwa} odwzorowują scenariusze ataku z modelu adwersarza (sekcja~\ref{sec:zalozenia-adwersarz}) na konkretne przypadki testowe, stanowiąc podstawę analizy w rozdziale~\ref{ch:analiza-bezpieczenstwa};
     \item \textbf{testy rozmyte} drzewa Merkle sprawdzają poprawność struktury dla losowo generowanych ciągów operacji.
 \end{itemize}
 
 Do testów wykorzystano dwa mechanizmy zastępcze, izolujące przedmiot testu od niedeterministycznych zależności. Pierwszym jest atrapa weryfikatora własności domeny, pozwalająca testować logikę rejestru bez rzeczywistych zapytań DNS; testy samego weryfikatora używają z kolei lokalnego serwera DNS odpowiadającego na zapytania w sposób kontrolowany. Drugim jest atrapa węzła wystawiająca interfejs RPC ponad rzeczywistą aplikacją, dzięki czemu testy klienta przebiegają na prawdziwych dowodach i skrótach stanu, lecz bez uruchamiania silnika konsensusu.
 
-Pokrycie kodu testami, zmierzone narzędziem \texttt{go test}, przedstawia tabela~\ref{tab:pokrycie}. Najwyższe pokrycie osiągają pakiety o największym znaczeniu dla bezpieczeństwa - weryfikator (100\%), prymitywy kryptograficzne, warstwa stanu oraz aplikacja ABCI. Niższa wartość dla pakietu \texttt{internal/types} wynika z wliczenia do niej kodu wygenerowanego automatycznie z Protocol Buffers, którego liczne metody pomocnicze nie są bezpośrednio wywoływane.
+Pokrycie kodu testami, zmierzone narzędziem \texttt{go test}, przedstawia tabela~\ref{tab:pokrycie}. Najwyższe pokrycie osiągają pakiety o największym znaczeniu dla bezpieczeństwa, czyli weryfikator (100\%), prymitywy kryptograficzne, warstwa stanu oraz aplikacja ABCI. Niższa wartość dla pakietu \texttt{internal/types} wynika z wliczenia do niej kodu wygenerowanego automatycznie z Protocol Buffers, którego liczne metody pomocnicze nie są bezpośrednio wywoływane.
 
 \begin{table}[H]
     \centering
     \caption{Pokrycie kodu testami w kluczowych pakietach}
     \label{tab:pokrycie}
-    \begin{tabular}{l r}
-        \hline
-        \textbf{Pakiet}                & \textbf{Pokrycie} \\
-        \hline
-        \texttt{internal/verifier}     & 100,0\%           \\
-        \texttt{internal/crypto}       & 92,3\%            \\
-        \texttt{internal/state}        & 89,1\%            \\
-        \texttt{internal/app}          & 86,7\%            \\
-        \texttt{cmd/dpki-cli/commands} & 80,6\%            \\
-        \hline
+    \begin{tabular}{l S[table-format=3.1]}
+        \toprule
+        \textbf{Pakiet}                & {\textbf{Pokrycie [\%]}} \\
+        \midrule
+        \texttt{internal/verifier}     & 100.0                    \\
+        \texttt{internal/crypto}       & 92.3                     \\
+        \texttt{internal/state}        & 89.1                     \\
+        \texttt{internal/app}          & 86.7                     \\
+        \texttt{cmd/dpki-cli/commands} & 80.6                     \\
+        \bottomrule
     \end{tabular}
 \end{table}
 
-Tak skonstruowany zestaw testów daje podstawę do dwóch kolejnych rozdziałów: testy bezpieczeństwa dostarczają materiału do analizy w rozdziale~\ref{ch:analiza-bezpieczenstwa}, a narzędzie pomiarowe \texttt{benchmark} oraz sieć testowa - do oceny wydajnościowej w rozdziale~\ref{ch:eksperymenty}.
+Tak skonstruowany zestaw testów daje podstawę do dwóch kolejnych rozdziałów: testy bezpieczeństwa dostarczają materiału do analizy w rozdziale~\ref{ch:analiza-bezpieczenstwa}, a narzędzie pomiarowe \texttt{benchmark} oraz sieć testowa - do oceny wydajnościowej w rozdziale~\ref{ch:eksperymenty}. Kompletny kod źródłowy prototypu wraz z opisanymi testami i skryptami sieci testowej jest dostępny w repozytorium projektu\footnote{\url{https://github.com/ajablonsk1/blockchain-dpki}}; nazwy testów przywoływane w rozdziale~\ref{ch:analiza-bezpieczenstwa} odnoszą się do funkcji testowych w tym repozytorium.

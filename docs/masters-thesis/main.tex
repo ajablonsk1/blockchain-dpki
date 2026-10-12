@@ -8,6 +8,17 @@
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{float}
+\usepackage{booktabs}
+\usepackage{array}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\usepackage{siunitx}
+\sisetup{
+    output-decimal-marker={,},
+    group-separator={\,},
+    group-minimum-digits=4,
+    per-mode=symbol,
+    detect-all
+}
 \usepackage{hyperref}
 \usepackage{listings}
 \usepackage{xcolor}
@@ -16,6 +27,14 @@
 \usepackage[backend=biber,style=ieee]{biblatex}
 
 \addbibresource{bibliography.bib}
+
+% Pełne polskie formy w bibliografii, niezależnie od wersji biblatex/polish.lbx
+% (starsze wersje skracają je do "term. wiz.", "adr.:", "spraw. tech.", "ser.").
+\DefineBibliographyStrings{polish}{
+    urlseen    = {dostęp},
+    url        = {URL},
+    techreport = {sprawozdanie techniczne},
+}
 \graphicspath{{figures/}{logos/}}
 
 \hypersetup{
@@ -52,6 +71,8 @@
     morestring=[b]",
     sensitive=true,
 }
+
+\emergencystretch=3em
 
 \title{Blockchain jako zdecentralizowana infrastruktura klucza publicznego}
 \author{Adrian Jabłoński}
