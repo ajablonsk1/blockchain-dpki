@@ -37,7 +37,7 @@ def load(results_dir: Path, name: str):
 
 
 def save(fig, out_dir: Path, name: str):
-    for ext in ("png", "svg"):
+    for ext in ("png", "svg", "pdf"):
         target = out_dir / f"{name}.{ext}"
         fig.savefig(target, bbox_inches="tight")
         print(f"wrote {target}")
@@ -86,13 +86,13 @@ def plot_latency(report, out_dir: Path):
 def plot_state(report, out_dir: Path):
     rows = report["state"]
     n = [r["domains"] for r in rows]
-    mb = [r["store_bytes"] / (1024 * 1024) for r in rows]
+    mib = [r["store_bytes"] / (1024 * 1024) for r in rows]
     insert_us = [r["avg_insert_us"] for r in rows]
 
     fig, ax = plt.subplots()
-    ax.plot(n, mb, "o-", color="tab:blue", label="rozmiar stanu")
+    ax.plot(n, mib, "o-", color="tab:blue", label="rozmiar stanu")
     ax.set_xlabel("liczba zarejestrowanych domen")
-    ax.set_ylabel("rozmiar magazynu stanu [MB]")
+    ax.set_ylabel("rozmiar magazynu stanu [MiB]")
     ax.set_title("Wzrost stanu: liniowy względem liczby domen")
     ax2 = ax.twinx()
     ax2.plot(n, insert_us, "s--", color="tab:orange", alpha=0.7, label="czas wstawienia")
@@ -111,11 +111,11 @@ def plot_proof(report, out_dir: Path):
     verify = [r["avg_verify_us"] for r in rows]
 
     fig, ax = plt.subplots()
-    ax.semilogx(n, size, "o-", label="proof inkluzji")
-    ax.semilogx(n, nonincl, "s--", label="proof nie-inkluzji")
+    ax.semilogx(n, size, "o-", label="dowód włączenia")
+    ax.semilogx(n, nonincl, "s--", label="dowód nieobecności")
     ax.set_xlabel("liczba domen w drzewie (skala log)")
-    ax.set_ylabel("średni rozmiar proofa [B]")
-    ax.set_title("Rozmiar proofa Merkle: O(log N)")
+    ax.set_ylabel("średni rozmiar dowodu [B]")
+    ax.set_title("Rozmiar dowodu Merkle: O(log N)")
     ax.legend()
     save(fig, out_dir, "proof-size")
 
@@ -123,7 +123,7 @@ def plot_proof(report, out_dir: Path):
     ax.semilogx(n, verify, "o-", color="tab:green")
     ax.set_xlabel("liczba domen w drzewie (skala log)")
     ax.set_ylabel("średni czas weryfikacji offline [µs]")
-    ax.set_title("Czas weryfikacji proofa")
+    ax.set_title("Czas weryfikacji dowodu")
     save(fig, out_dir, "proof-verify-time")
 
 
